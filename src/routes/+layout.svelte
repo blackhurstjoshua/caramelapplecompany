@@ -1,17 +1,14 @@
 <script lang="ts">
-    import type { Snippet } from 'svelte';
-    import type { LayoutData } from './$types';
-
-    let { data, children }: { data: LayoutData, children: Snippet } = $props();
+  import '../app.css';
 </script>
 
-{@render children()}
+<slot />
 
-<div>
+<!-- <div>
   Nav
   <ul>
     <li><a href="/">Home</a></li>
     <li><a href="/apples">Apples</a></li>
     <li><a href="/about">About</a></li>
   </ul>
-</div>
+</div> -->
