@@ -1,0 +1,151 @@
+{
+  "elementStyling": {
+    "cards": {
+      "background": "#E5E5E5",
+      "border": "none",
+      "shadow": "0 4px 12px rgba(0, 0, 0, 0.05)",
+      "borderRadius": "1rem",
+      "icons": {
+        "fill": "#FFFFFF",
+        "background": "none"
+      },
+      "content": {
+        "textColor": "#111111",
+        "subTextColor": "#444444"
+      }
+    },
+    "buttons": {
+      "primary": {
+        "background": "#FF007A",
+        "text": "#FFFFFF",
+        "borderRadius": "0.5rem",
+        "hover": {
+          "background": "#e6006e"
+        },
+        "active": {
+          "background": "#cc005f"
+        },
+        "disabled": {
+          "background": "#fbbcd7",
+          "text": "#ffffffb3"
+        },
+        "focus": {
+          "outline": "2px solid #FF007A"
+        }
+      },
+      "secondary": {
+        "background": "#FFFFFF",
+        "text": "#111111",
+        "border": "1px solid #CCCCCC",
+        "hover": {
+          "background": "#F5F5F5"
+        }
+      }
+    },
+    "inputs": {
+      "background": "#FFFFFF",
+      "border": "#CCCCCC",
+      "textColor": "#111111",
+      "placeholderColor": "#999999",
+      "borderRadius": "0.5rem",
+      "focus": {
+        "border": "#000000"
+      }
+    },
+    "headings": {
+      "h1": "#000000",
+      "h2": "#111111",
+      "h3": "#333333"
+    },
+    "text": {
+      "default": "#111111",
+      "muted": "#666666"
+    },
+    "breadcrumbs": {
+      "text": "#111111",
+      "active": "#666666",
+      "link": "#000000",
+      "separator": "#999999"
+    },
+    "navigationDrawer": {
+      "background": "#FFFFFF",
+      "text": "#000000",
+      "hoverText": "#FF007A",
+      "borderRadius": "1rem"
+    },
+    "footer": {
+      "background": "#FFD5E4",
+      "text": "#000000",
+      "link": "#000000"
+    },
+    "iconButtons": {
+      "containerBackground": "#F3F3F3",
+      "iconFill": "#FF007A"
+    }
+  },
+  "visualEffects": {
+    "shadows": {
+      "cards": "0 4px 12px rgba(0, 0, 0, 0.05)",
+      "forms": "0 8px 20px rgba(0, 0, 0, 0.1)"
+    },
+    "gradients": {
+      "none": "No gradients observed"
+    },
+    "borderRadius": {
+      "buttons": "0.5rem",
+      "cards": "1rem",
+      "forms": "1rem",
+      "navDrawer": "1rem"
+    },
+    "hoverAnimations": {
+      "buttons": "background-color transitions on hover",
+      "navLinks": "color transitions"
+    }
+  },
+  "componentStates": {
+    "button": {
+      "default": {
+        "background": "#FF007A",
+        "text": "#FFFFFF"
+      },
+      "hover": {
+        "background": "#e6006e"
+      },
+      "active": {
+        "background": "#cc005f"
+      },
+      "disabled": {
+        "background": "#fbbcd7",
+        "text": "#ffffffb3"
+      },
+      "focus": {
+        "outline": "2px solid #FF007A"
+      }
+    },
+    "input": {
+      "default": {
+        "background": "#FFFFFF",
+        "border": "#CCCCCC",
+        "text": "#111111"
+      },
+      "focus": {
+        "border": "#000000"
+      },
+      "placeholder": {
+        "color": "#999999"
+      }
+    },
+    "navLink": {
+      "default": "#000000",
+      "hover": "#FF007A",
+      "active": "#FF007A"
+    }
+  },
+  "DO_NOT": [
+    "DO NOT apply button background color (#FF007A) to headings or card content",
+    "DO NOT use card shadows on buttons or forms—form shadows are deeper",
+    "DO NOT place gradients on icons—icons are solid fills only",
+    "DO NOT use primary button hover colors on navigation links",
+    "DO NOT apply nav drawer text styles to footer links"
+  ]
+}

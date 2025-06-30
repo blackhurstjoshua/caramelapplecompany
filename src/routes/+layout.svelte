@@ -1,6 +1,11 @@
 <script lang="ts">
   import '../app.css';
+  import Navigation from '$lib/components/Navigation.svelte';
+  
+  let isDrawerOpen = false;
 </script>
+
+<Navigation bind:isDrawerOpen />
 
 <slot />
 

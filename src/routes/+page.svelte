@@ -1,6 +1,25 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
-<h2 class="text-2xl font-bold text-green-500">
-  This is the home/root page
-  <button class="btn">Test</button>
-</h2>
+<script lang="ts">
+  import Hero from '$lib/components/Hero.svelte';
+  import WeeklyFlavors from '$lib/components/WeeklyFlavors.svelte';
+  import OurStory from '$lib/components/OurStory.svelte';
+  import Footer from '$lib/components/Footer.svelte';
+</script>
+
+<svelte:head>
+  <title>Caramel Apple Co. - Handcrafted Weekly Flavors</title>
+  <meta name="description" content="Discover our handcrafted caramel apples made fresh daily with premium ingredients. Each week brings new flavors that celebrate the perfect balance of crisp apples and rich, buttery caramel." />
+</svelte:head>
+
+<main>
+  <!-- Hero Section -->
+  <Hero />
+  
+  <!-- Weekly Flavors Section -->
+  <WeeklyFlavors />
+  
+  <!-- Our Story Section -->
+  <OurStory />
+  
+  <!-- Footer -->
+  <Footer />
+</main>
