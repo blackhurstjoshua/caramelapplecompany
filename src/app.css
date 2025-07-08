@@ -1,2 +1,30 @@
 @import "tailwindcss";
 @plugin "daisyui";
+
+@theme {
+  --color-apple-light: #B8D68C;
+  --color-apple-medium: #8FBC5A;
+  --color-apple-dark: #6B9B37;
+}
+
+@layer components {
+  .greenApple {
+    background: linear-gradient(to right, var(--color-apple-dark) 0%, var(--color-apple-medium) 75%, var(--color-apple-light) 100%);
+    position: relative;
+    overflow: hidden;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(to right, var(--color-apple-light) 0%, var(--color-apple-medium) 15%, var(--color-apple-dark) 100%);
+      opacity: 0;
+      transition: opacity 300ms ease-in;
+    }
+    
+    &:hover::before {
+      opacity: 1;
+    }
+  }
+}

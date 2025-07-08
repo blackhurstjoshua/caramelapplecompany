@@ -12,21 +12,23 @@
   
   const baseClasses = `
     inline-flex items-center justify-center font-semibold rounded-lg
-    bg-[#FF007A] text-white border-none
-    hover:bg-[#e6006e] active:bg-[#cc005f]
-    disabled:bg-[#fbbcd7] disabled:text-[#ffffffb3]
-    focus:outline-none focus:ring-2 focus:ring-[#FF007A] focus:ring-offset-2 focus:ring-offset-white
-    transition-all duration-200 ease-in-out
+    greenApple text-white border-none
+    disabled:opacity-50 disabled:cursor-not-allowed
+    focus:outline-none focus:ring-2 focus:ring-apple-medium focus:ring-offset-2
     ${sizeClasses[size]}
   `;
 </script>
 
 {#if href}
-  <a {href} class="{baseClasses} no-underline" class:opacity-50={disabled}>
-    <slot />
+  <a {href} class="{baseClasses} no-underline" class:pointer-events-none={disabled}>
+    <span class="relative z-10">
+      <slot />
+    </span>
   </a>
 {:else}
   <button {type} {disabled} class={baseClasses}>
-    <slot />
+    <span class="relative z-10">
+      <slot />
+    </span>
   </button>
 {/if} 
