@@ -2,7 +2,7 @@
   import CTAButton from './CTAButton.svelte';
 </script>
 
-<section class="py-16 lg:py-24 bg-white">
+<section class="py-16 lg:py-24 bg-cream">
   <div class="max-w-7xl mx-auto px-4 lg:px-8">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
       <!-- Content -->

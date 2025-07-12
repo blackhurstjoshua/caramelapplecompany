@@ -8,9 +8,38 @@
   --color-apple-red-light: #F7DC6F;
   --color-apple-red-medium: #E74C3C;
   --color-apple-red-dark: #B71C1C;
+  --color-cream: #FFFFFE;
+  
+  /* Font Families */
+  --font-family-title: 'Oswald', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family-body: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+@layer base {
+  /* Set Roboto as the default font for the entire app */
+  body {
+    font-family: var(--font-family-body);
+  }
 }
 
 @layer components {
+  /* Font test classes */
+  .font-title-test {
+    font-family: 'Oswald', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-weight: 600;
+  }
+  
+  .font-body-test {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  
+  /* Debug font loading */
+  .oswald-test {
+    font-family: 'Oswald', Arial, sans-serif !important;
+    font-weight: 600 !important;
+    font-style: normal !important;
+  }
+  
   .greenApple {
     background: linear-gradient(to right, var(--color-apple-dark) 0%, var(--color-apple-medium) 75%, var(--color-apple-light) 100%);
     position: relative;

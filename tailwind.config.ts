@@ -10,6 +10,11 @@ export default {
         'apple-red-light': '#F7DC6F',
         'apple-red-medium': '#E74C3C',
         'apple-red-dark': '#B71C1C',
+        'cream': '#FFFFFE',
+      },
+      fontFamily: {
+        'title': ['Oswald', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        'body': ['Roboto', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
       },
     },
   },
