@@ -32,8 +32,12 @@
       </p>
       
       <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-        <CTAButton href="/order" size="lg">
+        <CTAButton href="/order" size="lg" style="green">
           Order Now
+        </CTAButton>
+        
+        <CTAButton href="/flavors" size="lg" style="red">
+          View Flavors
         </CTAButton>
         
         <button 

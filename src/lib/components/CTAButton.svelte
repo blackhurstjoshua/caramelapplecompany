@@ -2,6 +2,7 @@
   export let href: string | undefined = undefined;
   export let type: 'button' | 'submit' | 'reset' = 'button';
   export let size: 'sm' | 'md' | 'lg' = 'md';
+  export let style: 'red' | 'green' = 'green';
   export let disabled = false;
   
   const sizeClasses = {
@@ -10,11 +11,14 @@
     lg: 'px-8 py-4 text-lg'
   };
   
+  const appleClass = style === 'red' ? 'redApple' : 'greenApple';
+  const focusRingColor = style === 'red' ? 'focus:ring-apple-red-medium' : 'focus:ring-apple-medium';
+  
   const baseClasses = `
     inline-flex items-center justify-center font-semibold rounded-lg
-    greenApple text-white border-none
+    ${appleClass} text-white border-none
     disabled:opacity-50 disabled:cursor-not-allowed
-    focus:outline-none focus:ring-2 focus:ring-apple-medium focus:ring-offset-2
+    focus:outline-none focus:ring-2 ${focusRingColor} focus:ring-offset-2
     ${sizeClasses[size]}
   `;
 </script>
