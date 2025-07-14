@@ -148,12 +148,6 @@
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   }
   
-  .cart-icon {
-    stroke: var(--color-apple-red-medium, #dc2626);
-    color: var(--color-apple-red-medium, #dc2626);
-    filter: drop-shadow(0 1px 2px rgba(255, 0, 122, 0.3));
-  }
-  
   .nav-link:hover {
     background: linear-gradient(to right, var(--color-apple-dark) 0%, var(--color-apple-medium) 55%, var(--color-apple-light) 100%);
     -webkit-background-clip: text;
