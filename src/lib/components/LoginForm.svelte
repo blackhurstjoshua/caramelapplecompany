@@ -52,19 +52,19 @@
   }
 </script>
 
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-apple-light/20 to-apple-medium/20 p-4">
-  <div class="card w-full max-w-6xl bg-base-100 shadow-2xl">
+<div class="min-h-screen flex items-center justify-center bg-cream p-4 text-black">
+  <div class="card w-full max-w-6xl bg-base-100 shadow-2xl rounded-4xl">
     <div class="card-body p-0">
       <div class="grid grid-cols-1 lg:grid-cols-2 min-h-[600px]">
         <!-- Left Side - Login Form -->
-        <div class="p-8 lg:p-12 flex flex-col justify-center">
+        <div class="p-8 lg:p-12 flex flex-col justify-center rounded-l-4xl bg-white">
           <div class="max-w-md mx-auto w-full">
             <!-- Header -->
             <div class="text-center mb-8">
-              <h1 class="text-3xl lg:text-4xl font-bold mb-2" style="font-family: 'Oswald', sans-serif; font-weight: 600; letter-spacing: 0.05em;">
+              <h1 class="text-3xl lg:text-4xl font-bold mb-2 text-gray-900" style="font-family: 'Oswald', sans-serif; font-weight: 600; letter-spacing: 0.05em;">
                 {title}
               </h1>
-              <p class="text-base-content/70 text-lg">{subtitle}</p>
+              <p class="text-gray-600 text-lg">{subtitle}</p>
             </div>
             
             <!-- Login Form -->
@@ -72,20 +72,20 @@
               <!-- Email Input -->
               <div class="form-control">
                 <label for="email" class="label">
-                  <span class="label-text text-base font-medium">Email</span>
+                  <span class="label-text text-base font-medium text-gray-700">Email</span>
                 </label>
                 <input
                   id="email"
                   type="email"
                   bind:value={email}
-                  class="input input-bordered w-full text-base"
+                  class="input input-bordered w-full text-base bg-white border-gray-300 text-gray-900 focus:border-apple-medium focus:ring-1 focus:ring-apple-medium disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-200 disabled:cursor-not-allowed"
                   class:input-error={emailError}
                   placeholder="Enter your email"
                   disabled={loading}
                 />
                 {#if emailError}
                   <label class="label">
-                    <span class="label-text-alt text-error">{emailError}</span>
+                    <span class="label-text-alt text-red-600">{emailError}</span>
                   </label>
                 {/if}
               </div>
@@ -93,20 +93,20 @@
               <!-- Password Input -->
               <div class="form-control">
                 <label for="password" class="label">
-                  <span class="label-text text-base font-medium">Password</span>
+                  <span class="label-text text-base font-medium text-gray-700">Password</span>
                 </label>
                 <input
                   id="password"
                   type="password"
                   bind:value={password}
-                  class="input input-bordered w-full text-base"
+                  class="input input-bordered w-full text-base bg-white border-gray-300 text-gray-900 focus:border-apple-medium focus:ring-1 focus:ring-apple-medium disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-200 disabled:cursor-not-allowed"
                   class:input-error={passwordError}
                   placeholder="Enter your password"
                   disabled={loading}
                 />
                 {#if passwordError}
                   <label class="label">
-                    <span class="label-text-alt text-error">{passwordError}</span>
+                    <span class="label-text-alt text-red-600">{passwordError}</span>
                   </label>
                 {/if}
               </div>
@@ -130,13 +130,13 @@
             </form>
             
             <!-- Recovery Options -->
-            <div class="divider mt-8 mb-6"></div>
+            <div class="divider mt-8 mb-6 border-gray-200"></div>
             <div class="space-y-3">
               {#if showForgotPassword}
                 <button
                   type="button"
                   on:click={() => onforgotpassword?.()}
-                  class="btn btn-ghost btn-sm w-full text-base-content/70 hover:text-apple-medium"
+                  class="btn btn-ghost btn-sm w-full text-gray-600 hover:text-apple-medium hover:bg-gray-50"
                   disabled={loading}
                 >
                   Forgot Password?
@@ -147,7 +147,7 @@
                 <button
                   type="button"
                   on:click={() => oncontactadmin?.()}
-                  class="btn btn-ghost btn-sm w-full text-base-content/70 hover:text-apple-medium"
+                  class="btn btn-ghost btn-sm w-full text-gray-600 hover:text-apple-medium hover:bg-gray-50"
                   disabled={loading}
                 >
                   Contact Admin
@@ -158,17 +158,17 @@
         </div>
         
         <!-- Right Side - Content -->
-        <div class="hidden lg:flex items-center justify-center bg-gradient-to-br from-apple-medium/10 to-apple-dark/10 p-12">
+        <div class="hidden lg:flex items-center justify-center bg-gradient-to-br from-amber-100 to-orange-200 p-12 rounded-r-4xl">
           {#if rightSideContent === 'admin'}
             <div class="text-center max-w-md">
               <div class="text-6xl mb-6">🍎</div>
-              <h2 class="text-2xl font-bold mb-4" style="font-family: 'Oswald', sans-serif; font-weight: 600;">
+              <h2 class="text-2xl font-bold mb-4 text-gray-900" style="font-family: 'Oswald', sans-serif; font-weight: 600;">
                 Admin Portal
               </h2>
-              <p class="text-base-content/70 text-lg leading-relaxed">
+              <p class="text-gray-700 text-lg leading-relaxed">
                 Manage your caramel apple business with powerful tools for inventory, orders, and customer management.
               </p>
-              <div class="mt-8 space-y-2 text-sm text-base-content/60">
+              <div class="mt-8 space-y-2 text-sm text-gray-600">
                 <p>🔐 Secure access</p>
                 <p>📊 Real-time analytics</p>
                 <p>🛠️ Complete control</p>
@@ -177,13 +177,13 @@
           {:else if rightSideContent === 'customer'}
             <div class="text-center max-w-md">
               <div class="text-6xl mb-6">🍯</div>
-              <h2 class="text-2xl font-bold mb-4" style="font-family: 'Oswald', sans-serif; font-weight: 600;">
+              <h2 class="text-2xl font-bold mb-4 text-gray-900" style="font-family: 'Oswald', sans-serif; font-weight: 600;">
                 Customer Portal
               </h2>
-              <p class="text-base-content/70 text-lg leading-relaxed">
+              <p class="text-gray-700 text-lg leading-relaxed">
                 Access your order history, track deliveries, and discover new weekly flavors crafted just for you.
               </p>
-              <div class="mt-8 space-y-2 text-sm text-base-content/60">
+              <div class="mt-8 space-y-2 text-sm text-gray-600">
                 <p>📱 Order tracking</p>
                 <p>🎯 Personalized offers</p>
                 <p>💝 Exclusive flavors</p>

@@ -19,6 +19,7 @@
   /* Set Roboto as the default font for the entire app */
   body {
     font-family: var(--font-family-body);
+    color: #1f2937; /* gray-800 - dark text for good readability */
   }
 }
 
