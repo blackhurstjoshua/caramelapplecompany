@@ -23,4 +23,9 @@ export interface Order {
   status: 'pending' | 'processing' | 'completed' | 'cancelled';
   total: number;
   items: string[];
+}
+
+// Schedule types
+export interface ScheduleData {
+  blockedDates: string[]; // Array of blocked dates in YYYY-MM-DD format
 } 
