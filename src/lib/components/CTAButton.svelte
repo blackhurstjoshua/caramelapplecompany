@@ -30,7 +30,7 @@
     </span>
   </a>
 {:else}
-  <button {type} {disabled} class={baseClasses}>
+  <button {type} {disabled} class={baseClasses} on:click>
     <span class="relative z-10">
       <slot />
     </span>
