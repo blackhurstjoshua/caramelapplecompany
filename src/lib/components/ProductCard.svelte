@@ -1,6 +1,7 @@
 <script lang="ts">
   import CTAButton from './CTAButton.svelte';
   import type { Flavor } from '../stores/flavors';
+  import { cart } from '../stores/cart';
 
   export let flavor: Flavor;
   export let onEdit: (() => void) | undefined = undefined;
@@ -9,8 +10,10 @@
   function handleClick() {
     if (isAdmin && onEdit) {
       onEdit();
+    } else {
+      // Add item to cart for non-admin users
+      cart.addItem(flavor);
     }
-    // For non-admin users, we could add "Add to Cart" logic here later
   }
 </script>
 

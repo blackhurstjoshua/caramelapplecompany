@@ -2,8 +2,11 @@
   import Navigation from '$lib/components/Navigation.svelte';
   
   let isDrawerOpen = false;
+  let isCartDrawerOpen = false;
 </script>
 
-<Navigation bind:isDrawerOpen />
-
-<slot /> 
+<div class="min-h-screen bg-cream">
+  <Navigation bind:isDrawerOpen bind:isCartDrawerOpen />
+  
+  <slot />
+</div> 

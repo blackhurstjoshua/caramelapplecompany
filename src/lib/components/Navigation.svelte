@@ -1,9 +1,12 @@
 <script lang="ts">
   import { page } from '$app/state';
-  import { ShoppingCart } from '@lucide/svelte';
+  import { ShoppingCart, Trash2 } from '@lucide/svelte';
   import { onMount } from 'svelte';
+  import { cart, cartCount, cartTotal, type CartItem } from '$lib/stores/cart';
+  import CTAButton from './CTAButton.svelte';
   
   export let isDrawerOpen = false;
+  export let isCartDrawerOpen = false;
   
   let scrollY = 0;
   let isScrolled = false;
@@ -19,6 +22,18 @@
   
   function closeDrawer() {
     isDrawerOpen = false;
+  }
+
+  function toggleCartDrawer() {
+    isCartDrawerOpen = !isCartDrawerOpen;
+  }
+
+  function closeCartDrawer() {
+    isCartDrawerOpen = false;
+  }
+
+  function removeFromCart(itemId: string) {
+    cart.removeItem(itemId);
   }
   
   function handleScroll() {
@@ -81,9 +96,18 @@
         </linearGradient>
       </defs>
     </svg>
-    <button class="p-2 transition-all duration-200 hover:scale-110" aria-label="Shopping cart">
-      <ShoppingCart class="w-10 h-10" color="url(#cart-gradient)"/>
-    </button>
+    <div class="indicator">
+      {#if $cartCount > 0}
+        <span class="indicator-item badge badge-secondary">{$cartCount}</span>
+      {/if}
+      <button 
+        class="p-2 transition-all duration-200 hover:scale-110" 
+        aria-label="Shopping cart"
+        on:click={toggleCartDrawer}
+      >
+        <ShoppingCart class="w-10 h-10" color="url(#cart-gradient)"/>
+      </button>
+    </div>
   </div>
   
   <!-- Floating round hamburger button -->
@@ -136,6 +160,99 @@
           {/each}
         </ul>
       </nav>
+    </aside>
+  </div>
+</div>
+
+<!-- Cart Drawer -->
+<div class="drawer drawer-end {isCartDrawerOpen ? 'drawer-open' : ''}">
+  <input id="cart-drawer-toggle" type="checkbox" class="drawer-toggle" bind:checked={isCartDrawerOpen} />
+  
+  <!-- Drawer content overlay -->
+  <div class="drawer-content"></div>
+  
+  <!-- Cart drawer side -->
+  <div class="drawer-side z-50">
+    <label for="cart-drawer-toggle" class="drawer-overlay" on:click={closeCartDrawer}></label>
+    <aside class="min-h-full w-96 bg-white flex flex-col">
+      <!-- Cart header -->
+      <div class="flex items-center justify-between p-4 border-b bg-gray-50">
+        <div class="flex items-center">
+          <ShoppingCart class="w-6 h-6 mr-2 text-gray-700" />
+          <span class="text-lg font-semibold text-gray-900">Shopping Cart</span>
+          {#if $cartCount > 0}
+            <span class="ml-2 bg-gray-200 text-gray-800 text-sm px-2 py-1 rounded-full">
+              {$cartCount} {$cartCount === 1 ? 'item' : 'items'}
+            </span>
+          {/if}
+        </div>
+        <button on:click={closeCartDrawer} class="btn btn-sm btn-ghost" aria-label="Close cart">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Cart items -->
+      <div class="flex-1 overflow-y-auto p-4">
+        {#if $cart.length === 0}
+          <div class="text-center py-12">
+            <div class="text-6xl mb-4">🛒</div>
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">Your cart is empty</h3>
+            <p class="text-gray-500">Add some delicious caramel apples to get started!</p>
+          </div>
+        {:else}
+          <ul class="space-y-3">
+            {#each $cart as item (item.id)}
+              <li class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <h4 class="font-semibold text-gray-900 mb-1">{item.flavor.name}</h4>
+                    <p class="text-sm text-gray-600 mb-2 line-clamp-2">{item.flavor.description}</p>
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center space-x-2">
+                        <span class="text-sm text-gray-500">Qty: {item.quantity}</span>
+                        <span class="text-lg font-bold text-green-600">
+                          ${(item.flavor.price * item.quantity).toFixed(2)}
+                        </span>
+                      </div>
+                      <button 
+                        on:click={() => removeFromCart(item.id)}
+                        class="text-red-500 hover:text-red-700 transition-colors p-1"
+                        aria-label="Remove from cart"
+                      >
+                        <Trash2 class="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            {/each}
+          </ul>
+        {/if}
+      </div>
+      
+      <!-- Cart footer with total and checkout -->
+      {#if $cart.length > 0}
+        <div class="border-t bg-gray-50 p-4">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-lg font-semibold text-gray-900">Total:</span>
+            <span class="text-2xl font-bold text-green-600">
+              ${$cartTotal.toFixed(2)}
+            </span>
+          </div>
+          <CTAButton 
+            size="lg" 
+            style="green"
+            on:click={() => {
+              // Handle checkout logic here
+              console.log('Proceeding to checkout...');
+            }}
+          >
+            Checkout
+          </CTAButton>
+        </div>
+      {/if}
     </aside>
   </div>
 </div>
