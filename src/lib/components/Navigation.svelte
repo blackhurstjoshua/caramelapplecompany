@@ -165,10 +165,10 @@
 </div>
 
 <!-- Cart Drawer -->
-<div class="drawer drawer-end {isCartDrawerOpen ? 'drawer-open' : ''}">
+<div class="drawer drawer-end">
   <input id="cart-drawer-toggle" type="checkbox" class="drawer-toggle" bind:checked={isCartDrawerOpen} />
   
-  <!-- Drawer content overlay -->
+  <!-- Drawer content (invisible, just for DaisyUI structure) -->
   <div class="drawer-content"></div>
   
   <!-- Cart drawer side -->
