@@ -1,23 +1,23 @@
 <script lang="ts">
   import { page } from '$app/state';
   import { ShoppingCart, Trash2 } from '@lucide/svelte';
-  import { onMount } from 'svelte';
+  import { onMount, afterUpdate } from 'svelte';
   import { cart, cartCount, cartTotal, type CartItem } from '$lib/stores/cart';
   import CTAButton from './CTAButton.svelte';
   
-  export let isDrawerOpen = false;
+    export let isDrawerOpen = false;
   export let isCartDrawerOpen = false;
-  
+
   let scrollY = 0;
   let isScrolled = false;
+  let isAnimating = false;
+  let previousCartCount = 0;
   
   const navLinks = [
     { href: '/', label: 'Home' },
     { href: '/order', label: 'Order' },
-    { href: '/locations', label: 'Locations' },
-    { href: '/catering', label: 'Catering' },
-    { href: '/gift-cards', label: 'Gift Cards' },
-    { href: '/merch', label: 'Merch' }
+    // { href: '/catering', label: 'Catering' },
+    { href: '/about', label: 'About' }
   ];
   
   function closeDrawer() {
@@ -43,7 +43,18 @@
   
   onMount(() => {
     window.addEventListener('scroll', handleScroll);
+    previousCartCount = $cartCount; // Initialize on mount
     return () => window.removeEventListener('scroll', handleScroll);
+  });
+
+  afterUpdate(() => {
+    if ($cartCount > previousCartCount) {
+      isAnimating = true;
+      setTimeout(() => {
+        isAnimating = false;
+      }, 300);
+    }
+    previousCartCount = $cartCount;
   });
 </script>
 
@@ -98,7 +109,10 @@
     </svg>
     <div class="indicator">
       {#if $cartCount > 0}
-        <span class="indicator-item badge badge-secondary">{$cartCount}</span>
+        <span 
+          class="indicator-item indicator-end w-5 h-5 bg-gradient-to-br from-amber-100 to-orange-200 text-black rounded-full flex items-center justify-center text-xs font-bold cart-indicator"
+          class:cart-bounce={isAnimating}
+        >{$cartCount}</span>
       {/if}
       <button 
         class="p-2 transition-all duration-200 hover:scale-110" 
@@ -172,8 +186,8 @@
   <div class="drawer-content"></div>
   
   <!-- Cart drawer side -->
-  <div class="drawer-side z-50">
-    <label for="cart-drawer-toggle" class="drawer-overlay" on:click={closeCartDrawer}></label>
+  <div class="drawer-side z-70">
+    <label for="cart-drawer-toggle" class="drawer-overlay"></label>
     <aside class="min-h-full w-96 bg-white flex flex-col">
       <!-- Cart header -->
       <div class="flex items-center justify-between p-4 border-b bg-gray-50">
@@ -271,5 +285,20 @@
     background-clip: text;
     -webkit-text-fill-color: transparent;
     color: transparent;
+  }
+  
+  .cart-indicator {
+    transform: translate(-8px, 8px);
+    transition: transform 0.2s ease-out;
+  }
+  
+  .cart-bounce {
+    animation: cartBounce 0.3s ease-out;
+  }
+  
+  @keyframes cartBounce {
+    0% { transform: translate(-8px, 8px) scale(1); }
+    50% { transform: translate(-8px, 8px) scale(1.3); }
+    100% { transform: translate(-8px, 8px) scale(1); }
   }
 </style> 
