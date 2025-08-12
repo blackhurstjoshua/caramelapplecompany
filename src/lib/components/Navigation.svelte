@@ -1,16 +1,16 @@
 <script lang="ts">
   import { page } from '$app/state';
+  import { goto } from '$app/navigation';
   import { ShoppingCart, Trash2 } from '@lucide/svelte';
-  import { onMount, afterUpdate } from 'svelte';
+  import { onMount } from 'svelte';
   import { cart, cartCount, cartTotal, type CartItem } from '$lib/stores/cart';
   import CTAButton from './CTAButton.svelte';
   
-    export let isDrawerOpen = false;
-  export let isCartDrawerOpen = false;
+    let { isDrawerOpen = $bindable(false), isCartDrawerOpen = $bindable(false), children } = $props();
 
-  let scrollY = 0;
-  let isScrolled = false;
-  let isAnimating = false;
+  let scrollY = $state(0);
+  let isScrolled = $state(false);
+  let isAnimating = $state(false);
   let previousCartCount = 0;
   
   const navLinks = [
@@ -47,7 +47,7 @@
     return () => window.removeEventListener('scroll', handleScroll);
   });
 
-  afterUpdate(() => {
+  $effect(() => {
     if ($cartCount > previousCartCount) {
       isAnimating = true;
       setTimeout(() => {
@@ -68,7 +68,7 @@
          class:mt-4={!isScrolled} 
          class:mt-1={isScrolled}>
       <h1 class="text-black drop-shadow-lg transition-all duration-300 ease-in-out" 
-          class:text-4xl={!isScrolled} 
+          class:text-4xl={!isScrolled}
           class:md:text-5xl={!isScrolled} 
           class:lg:text-6xl={!isScrolled}
           class:text-2xl={isScrolled} 
@@ -117,7 +117,7 @@
       <button 
         class="p-2 transition-all duration-200 hover:scale-110" 
         aria-label="Shopping cart"
-        on:click={toggleCartDrawer}
+        onclick={toggleCartDrawer}
       >
         <ShoppingCart class="w-10 h-10" color="url(#cart-gradient)"/>
       </button>
@@ -137,7 +137,7 @@
   
   <!-- Page content -->
   <div class="drawer-content">
-    <slot />
+    {@render children?.()}
   </div>
   
   <!-- Drawer side -->
@@ -150,7 +150,7 @@
           <span class="text-2xl mr-2">🍎</span>
           <span class="text-lg font-semibold text-gray-900" style="font-family: 'Oswald', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-weight: 400; letter-spacing: 0.1em;">Caramel Apple Co.</span>
         </div>
-        <button on:click={closeDrawer} class="btn btn-sm" aria-label="Close navigation menu">
+        <button onclick={closeDrawer} class="btn btn-sm" aria-label="Close navigation menu">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
@@ -166,7 +166,7 @@
                 href={link.href}
                 class="block px-4 py-4 rounded-2xl text-black nav-link transition-colors duration-200 text-xl"
                 style="font-family: 'Oswald', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-weight: 600; letter-spacing: 0.05em;"
-                on:click={closeDrawer}
+                onclick={closeDrawer}
               >
                 {link.label}
               </a>
@@ -200,7 +200,7 @@
             </span>
           {/if}
         </div>
-        <button on:click={closeCartDrawer} class="btn btn-sm btn-ghost" aria-label="Close cart">
+        <button onclick={closeCartDrawer} class="btn btn-sm btn-ghost" aria-label="Close cart">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
@@ -231,7 +231,7 @@
                         </span>
                       </div>
                       <button 
-                        on:click={() => removeFromCart(item.id)}
+                        onclick={() => removeFromCart(item.id)}
                         class="text-red-500 hover:text-red-700 transition-colors p-1"
                         aria-label="Remove from cart"
                       >
@@ -259,8 +259,9 @@
             size="lg" 
             style="green"
             on:click={() => {
-              // Handle checkout logic here
-              console.log('Proceeding to checkout...');
+              // Navigate to checkout page
+              isCartDrawerOpen = false;
+              goto('/checkout');
             }}
           >
             Checkout
