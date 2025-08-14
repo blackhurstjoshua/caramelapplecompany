@@ -1,16 +1,24 @@
 <script lang="ts">
-  export let blockedDates: string[] = [];
+  import type { DateAvailability } from '$lib/types';
+  
+  export let dateAvailability: DateAvailability[] = [];
   export let editMode = false;
   export let selectedDate: string | null = null;
   export let currentMonth: Date = new Date();
   
+  // Debug logging
+  // $: {
+  //   console.log('Calendar received dateAvailability:', dateAvailability);
+  //   console.log('Number of availability entries:', dateAvailability.length);
+  // }
+  
   // Callback props instead of event dispatcher
   export let onDateSelect: ((date: string) => void) | undefined = undefined;
-  export let onScheduleUpdate: ((blockedDates: string[]) => void) | undefined = undefined;
-  export let onSave: ((blockedDates: string[]) => void) | undefined = undefined;
+  export let onScheduleUpdate: ((availability: DateAvailability[]) => void) | undefined = undefined;
+  export let onSave: ((availability: DateAvailability[]) => void) | undefined = undefined;
   export let onCancel: (() => void) | undefined = undefined;
   
-  let editingBlockedDates: string[] = [];
+  let editingAvailability: DateAvailability[] = [];
   let isEditing = false;
   
   // Calendar helpers
@@ -53,32 +61,74 @@
   }
   
   function startEditing() {
-    // Initialize editing with current blocked dates
-    editingBlockedDates = [...blockedDates];
+    // Initialize editing with current availability
+    editingAvailability = [...dateAvailability];
     isEditing = true;
   }
   
   function cancelEditing() {
-    editingBlockedDates = [];
+    editingAvailability = [];
     isEditing = false;
     onCancel?.();
   }
   
   function saveChanges() {
-    onSave?.(editingBlockedDates);
+    onSave?.(editingAvailability);
     isEditing = false;
+  }
+  
+  function getDateAvailability(dateStr: string, availabilityList: DateAvailability[]): DateAvailability {
+    const availability = availabilityList.find(a => a.date === dateStr);
+    if (availability) {
+      console.log(`Found schedule data for ${dateStr}:`, availability);
+      return availability;
+    }
+    
+    // Default behavior based on day of week
+    const dayOfWeek = new Date(dateStr).getDay();
+    if (dayOfWeek === 6) { // Sunday
+      console.log(`Using Sunday default for ${dateStr}`);
+      return { date: dateStr, deliveryAvailable: false, pickupAvailable: true }; // Sunday default: pickup only
+    } else {
+      console.log(`Using weekday default for ${dateStr}`);
+      return { date: dateStr, deliveryAvailable: true, pickupAvailable: true }; // Other days: both available
+    }
+  }
+  
+  function setDateAvailability(dateStr: string, availability: Partial<DateAvailability>, availabilityList: DateAvailability[]): DateAvailability[] {
+    const existingIndex = availabilityList.findIndex(a => a.date === dateStr);
+    if (existingIndex >= 0) {
+      // Update existing
+      availabilityList[existingIndex] = { ...availabilityList[existingIndex], ...availability };
+      return [...availabilityList];
+    } else {
+      // Add new
+      return [...availabilityList, { date: dateStr, deliveryAvailable: true, pickupAvailable: true, ...availability }];
+    }
   }
   
   function toggleDayAvailability(dateStr: string) {
     if (isEditing) {
-      // Toggle blocked status - add/remove from blocked list
-      const currentlyBlocked = editingBlockedDates.includes(dateStr);
-      if (currentlyBlocked) {
-        editingBlockedDates = editingBlockedDates.filter(date => date !== dateStr);
+      // Cycle through 4 states: both → delivery only → pickup only → unavailable → both
+      const current = getDateAvailability(dateStr, editingAvailability);
+      let newAvailability: Partial<DateAvailability>;
+      
+      if (current.deliveryAvailable && current.pickupAvailable) {
+        // Both available → Delivery only
+        newAvailability = { deliveryAvailable: true, pickupAvailable: false };
+      } else if (current.deliveryAvailable && !current.pickupAvailable) {
+        // Delivery only → Pickup only
+        newAvailability = { deliveryAvailable: false, pickupAvailable: true };
+      } else if (!current.deliveryAvailable && current.pickupAvailable) {
+        // Pickup only → Unavailable
+        newAvailability = { deliveryAvailable: false, pickupAvailable: false };
       } else {
-        editingBlockedDates = [...editingBlockedDates, dateStr];
+        // Unavailable → Both available
+        newAvailability = { deliveryAvailable: true, pickupAvailable: true };
       }
-      onScheduleUpdate?.(editingBlockedDates);
+      
+      editingAvailability = setDateAvailability(dateStr, newAvailability, editingAvailability);
+      onScheduleUpdate?.(editingAvailability);
     } else if (!editMode) {
       // Customer selection mode
       selectedDate = dateStr;
@@ -97,13 +147,10 @@
   $: calendarDays = getCalendarDays(currentMonth);
   
   // Create reactive availability checker
-  $: getAvailability = (dateStr: string, dayOfWeek: number) => {
-    // Sunday is always blocked (dayOfWeek === 0)
-    if (dayOfWeek === 0) return false;
-    
-    // Check if date is in blocked list
-    const blockedList = isEditing ? editingBlockedDates : blockedDates;
-    return !blockedList.includes(dateStr);
+  $: getAvailabilityForDate = (dateStr: string, dayOfWeek: number): DateAvailability => {
+    // Get current availability list
+    const availabilityList = isEditing ? editingAvailability : dateAvailability;
+    return getDateAvailability(dateStr, availabilityList);
   };
 </script>
 
@@ -156,7 +203,7 @@
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
       </svg>
-      <span>Click on days to toggle availability. Green = Available, Red = Unavailable</span>
+      <span>Click on days to cycle through: 🚛📦 Both → 🚛 Delivery Only → 📦 Pickup Only → ❌ Unavailable</span>
     </div>
   {/if}
   
@@ -179,21 +226,34 @@
                 {:else}
           {@const dateStr = formatDate(day)}
           {@const dayOfWeek = day.getDay()}
-          {@const isAvailable = getAvailability(dateStr, dayOfWeek)}
+          {@const availability = getAvailabilityForDate(dateStr, dayOfWeek)}
           {@const isPast = isPastDate(day)}
           {@const isSelected = selectedDate === dateStr}
+          {@const cssClass = availability.deliveryAvailable && availability.pickupAvailable ? 'both-available' : 
+                             availability.deliveryAvailable ? 'delivery-only' : 
+                             availability.pickupAvailable ? 'pickup-only' : 'unavailable'}
           
           <button
-             class="calendar-day {isAvailable ? 'available' : 'unavailable'} {isSelected ? 'selected' : ''} {isPast ? 'past' : ''} {isEditing ? 'editing' : ''}"
+             class="calendar-day {cssClass} {isSelected ? 'selected' : ''} {isPast ? 'past' : ''} {isEditing ? 'editing' : ''}"
              disabled={isPast && !editMode}
              on:click={() => toggleDayAvailability(dateStr)}
-             aria-label="{monthNames[day.getMonth()]} {day.getDate()}, {isAvailable ? 'Available' : 'Unavailable'}"
+             aria-label="{monthNames[day.getMonth()]} {day.getDate()}, {availability.deliveryAvailable && availability.pickupAvailable ? 'Both Available' : availability.deliveryAvailable ? 'Delivery Only' : availability.pickupAvailable ? 'Pickup Only' : 'Unavailable'}"
            >
              <span class="day-number">{day.getDate()}</span>
              
-             <!-- Always show availability indicator -->
+             <!-- Show availability icons -->
              {#if !isPast}
-               <span class="status-indicator {isAvailable ? 'available-dot' : 'unavailable-dot'}"></span>
+               <span class="availability-icon">
+                 {#if availability.deliveryAvailable && availability.pickupAvailable}
+                   🚛📦
+                 {:else if availability.deliveryAvailable}
+                   🚛
+                 {:else if availability.pickupAvailable}
+                   📦
+                 {:else}
+                   ❌
+                 {/if}
+               </span>
              {/if}
            </button>
         {/if}
@@ -202,31 +262,28 @@
   </div>
   
   <!-- Legend -->
-  <div class="flex justify-center gap-6 mt-6 text-sm">
-    {#if isEditing}
+  <div class="flex justify-center gap-4 mt-6 text-sm flex-wrap">
+    <div class="flex items-center gap-2">
+      <span class="text-lg">🚛📦</span>
+      <span>Both Available</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-lg">🚛</span>
+      <span>Delivery Only</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-lg">📦</span>
+      <span>Pickup Only</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-lg">❌</span>
+      <span>Unavailable</span>
+    </div>
+    {#if !editMode}
       <div class="flex items-center gap-2">
-        <div class="w-2 h-2 bg-green-500 rounded-full shadow-sm"></div>
-        <span>Available (Green Dot)</span>
+        <div class="w-4 h-4 bg-gray-300 rounded"></div>
+        <span>Past Date</span>
       </div>
-      <div class="flex items-center gap-2">
-        <div class="w-2 h-2 bg-red-500 rounded-full shadow-sm"></div>
-        <span>Unavailable (Red Dot)</span>
-      </div>
-    {:else}
-      <div class="flex items-center gap-2">
-        <div class="w-4 h-4 bg-success rounded"></div>
-        <span>Available</span>
-      </div>
-      <div class="flex items-center gap-2">
-        <div class="w-4 h-4 bg-error rounded"></div>
-        <span>Unavailable</span>
-      </div>
-      {#if !editMode}
-        <div class="flex items-center gap-2">
-          <div class="w-4 h-4 bg-gray-300 rounded"></div>
-          <span>Past Date</span>
-        </div>
-      {/if}
     {/if}
   </div>
 </div>
@@ -243,16 +300,16 @@
   
   .calendar-day {
     height: 60px;
-    border: 2px solid transparent;
     border-radius: 8px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     font-weight: 600;
     transition: all 0.2s ease;
     position: relative;
     cursor: pointer;
+    padding: 6px 4px;
   }
   
   .calendar-day:not(.past):hover {
@@ -260,14 +317,28 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
   
-  .calendar-day.available {
-    background-color: hsl(var(--su));
-    color: hsl(var(--suc));
+  .calendar-day.both-available {
+    background-color: white;
+    color: #374151;
+    border: 2px solid #e5e7eb;
+  }
+  
+  .calendar-day.delivery-only {
+    background-color: white;
+    color: #374151;
+    border: 2px solid #e5e7eb;
+  }
+  
+  .calendar-day.pickup-only {
+    background-color: white;
+    color: #374151;
+    border: 2px solid #e5e7eb;
   }
   
   .calendar-day.unavailable {
-    background-color: hsl(var(--er));
-    color: hsl(var(--erc));
+    background-color: #9ca3af;
+    color: white;
+    border: 2px solid #6b7280;
   }
   
   .calendar-day.past {
@@ -296,24 +367,9 @@
     font-size: 1.1rem;
   }
   
-  .status-indicator {
-    position: absolute;
-    bottom: 8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
+  .availability-icon {
+    font-size: 0.9rem;
     transition: all 0.2s ease;
-  }
-  
-  .status-indicator.available-dot {
-    background-color: #10b981;
-    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
-  }
-  
-  .status-indicator.unavailable-dot {
-    background-color: #ef4444;
-    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
+    margin-top: 2px;
   }
 </style> 

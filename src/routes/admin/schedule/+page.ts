@@ -1,14 +1,14 @@
 import type { PageLoad } from './$types';
-import type { ScheduleData } from '$lib/types';
+import type { ScheduleData, DateAvailability } from '$lib/types';
 import scheduleData from '$lib/schedule.json';
 
 export const load: PageLoad = async () => {
   // Load schedule data fresh from server
   const data = scheduleData as ScheduleData;
-  const blockedDates: string[] = data.blockedDates;
+  const dateAvailability: DateAvailability[] = data.dateAvailability || [];
   
   return {
-    blockedDates
+    dateAvailability
   };
 };
 

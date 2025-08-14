@@ -26,6 +26,15 @@ export interface Order {
 }
 
 // Schedule types
+export interface DateAvailability {
+  date: string; // YYYY-MM-DD format
+  deliveryAvailable: boolean;
+  pickupAvailable: boolean;
+  reason?: string;
+}
+
 export interface ScheduleData {
-  blockedDates: string[]; // Array of blocked dates in YYYY-MM-DD format
+  dateAvailability: DateAvailability[]; // Array of date availability settings
+  // Legacy support - will be removed
+  blockedDates?: string[];
 } 
