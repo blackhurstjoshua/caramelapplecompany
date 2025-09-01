@@ -221,13 +221,13 @@
               <li class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
                 <div class="flex items-start justify-between">
                   <div class="flex-1">
-                    <h4 class="font-semibold text-gray-900 mb-1">{item.flavor.name}</h4>
-                    <p class="text-sm text-gray-600 mb-2 line-clamp-2">{item.flavor.description}</p>
+                    <h4 class="font-semibold text-gray-900 mb-1">{item.product.name}</h4>
+                    <p class="text-sm text-gray-600 mb-2 line-clamp-2">{item.product.description}</p>
                     <div class="flex items-center justify-between">
                       <div class="flex items-center space-x-2">
                         <span class="text-sm text-gray-500">Qty: {item.quantity}</span>
                         <span class="text-lg font-bold text-green-600">
-                          ${(item.flavor.price * item.quantity).toFixed(2)}
+                          ${(item.product.toDollars() * item.quantity).toFixed(2)}
                         </span>
                       </div>
                       <button 

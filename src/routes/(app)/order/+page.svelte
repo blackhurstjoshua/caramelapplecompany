@@ -1,12 +1,12 @@
 <script lang="ts">
   import type { PageData } from './$types';
   import ProductCard from '$lib/components/ProductCard.svelte';
-  import type { Flavor } from '$lib/stores/flavors';
+  import { Product } from '$lib/stores/product';
   
   export let data: PageData;
   
-  // Get all products from the loaded data
-  let products: Flavor[] = data.products;
+  // Convert raw data to Product instances (same as admin page)
+  let products: Product[] = data.products.map((p: any) => new Product(p));
 </script>
 
 <svelte:head>
@@ -25,7 +25,7 @@
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
     {#each products as product}
       <ProductCard 
-        flavor={product} 
+        product={product} 
         isAdmin={false}
       />
     {/each}

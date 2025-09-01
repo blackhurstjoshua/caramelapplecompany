@@ -1,13 +1,13 @@
 <script lang="ts">
   import type { PageData } from './$types';
-  import type { Product } from '$lib/stores/product';
+  import { Product } from '$lib/stores/product';
   import ProductCard from '$lib/components/ProductCard.svelte';
   import EditProductCard from '$lib/components/EditProductCard.svelte';
   
   export let data: PageData;
   
-  // State management
-  let products: Product[] = [...data.products]; // Create a local copy we can edit
+  // State management - convert plain objects to Product instances
+  let products: Product[] = data.products.map((p: any) => new Product(p));
   let editingIndex: number | null = null; // Track which product is being edited
   
   function handleEdit(index: number) {

@@ -127,7 +127,7 @@ export const cartTotal = writable(0);
 // Update derived stores when cart changes
 cart.subscribe(items => {
   const count = items.reduce((total, item) => total + item.quantity, 0);
-  const total = items.reduce((total, item) => total + (item.product.priceCents * item.quantity), 0);
+  const total = items.reduce((total, item) => total + (item.product.toDollars() * item.quantity), 0);
   
   cartCount.set(count);
   cartTotal.set(total);

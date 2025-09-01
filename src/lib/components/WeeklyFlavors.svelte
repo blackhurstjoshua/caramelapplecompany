@@ -22,7 +22,7 @@
     <!-- Flavors Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
       {#each specialFlavors as flavor}
-        <ProductCard {flavor} isAdmin={false} />
+        <!-- <ProductCard product={flavor} isAdmin={false} /> -->
       {/each}
     </div>
     
