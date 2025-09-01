@@ -8,6 +8,16 @@ export interface Flavor {
   isWeeklySpecial: boolean;
   price: number;
 }
+// needs to pull products from supabase and cast them to Flavor
+import { getWeeklySpecials } from '$lib/services/products';
+
+export const fetchWeeklyFlavors = async () => {
+  const products = await getWeeklySpecials();
+  return products.map(product => ({
+    ...product,
+    isWeeklySpecial: product.is_weekly_special
+  }));
+};
 
 export const weeklyFlavors = writable<Flavor[]>([
   {

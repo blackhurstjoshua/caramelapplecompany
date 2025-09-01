@@ -1,10 +1,10 @@
 import { writable, get } from 'svelte/store';
 import { browser } from '$app/environment';
-import type { Flavor } from './flavors';
+import { Product } from './product';
 
 export interface CartItem {
   id: string;
-  flavor: Flavor;
+  product: Product;
   quantity: number;
   addedAt: number;
 }
@@ -17,7 +17,14 @@ function createCartStore() {
     if (!browser) return [];
     try {
       const stored = localStorage.getItem('caramel-apple-cart');
-      return stored ? JSON.parse(stored) : [];
+      if (!stored) return [];
+      
+      const parsedItems = JSON.parse(stored);
+      // Convert plain objects back to Product instances
+      return parsedItems.map((item: any) => ({
+        ...item,
+        product: new Product(item.product)
+      }));
     } catch (error) {
       console.error('Error loading cart from localStorage:', error);
       return [];
@@ -41,9 +48,9 @@ function createCartStore() {
     subscribe,
     
     // Add item to cart
-    addItem: (flavor: Flavor) => {
+    addItem: (product: Product) => {
       update(items => {
-        const existingItemIndex = items.findIndex(item => item.flavor.id === flavor.id);
+        const existingItemIndex = items.findIndex(item => item.product.id === product.id);
         
         if (existingItemIndex >= 0) {
           // Increment quantity if item exists
@@ -51,8 +58,8 @@ function createCartStore() {
         } else {
           // Add new item
           const newItem: CartItem = {
-            id: `${flavor.id}-${Date.now()}`,
-            flavor,
+            id: `${product.id}-${Date.now()}`,
+            product,
             quantity: 1,
             addedAt: Date.now()
           };
@@ -106,7 +113,7 @@ function createCartStore() {
     // Get total price
     getTotalPrice: (): number => {
       const items = get({ subscribe });
-      return items.reduce((total, item) => total + (item.flavor.price * item.quantity), 0);
+      return items.reduce((total, item) => total + (item.product.priceCents * item.quantity), 0);
     }
   };
 }
@@ -120,7 +127,7 @@ export const cartTotal = writable(0);
 // Update derived stores when cart changes
 cart.subscribe(items => {
   const count = items.reduce((total, item) => total + item.quantity, 0);
-  const total = items.reduce((total, item) => total + (item.flavor.price * item.quantity), 0);
+  const total = items.reduce((total, item) => total + (item.product.priceCents * item.quantity), 0);
   
   cartCount.set(count);
   cartTotal.set(total);

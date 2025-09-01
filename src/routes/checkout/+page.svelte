@@ -1,6 +1,11 @@
 <script lang="ts">
   import { cart, cartTotal, type CartItem } from '$lib/stores/cart';
   import { goto } from '$app/navigation';
+  import Calendar from '$lib/components/Calendar.svelte';
+  import type { PageData } from './$types';
+  import type { DateAvailability } from '$lib/types';
+  
+  export let data: PageData;
 
   // Multi-step form state
   let currentStep = 1;
@@ -19,7 +24,7 @@
   let state = '';
   let zip = '';
 
-  let selectedDate = ''; // TODO: Will be populated by calendar component
+  let selectedDate = ''; // Will be populated by calendar component
 
   let paymentMethod: 'pickup' | 'stripe' = 'pickup';
 
@@ -73,6 +78,26 @@
       return;
     }
     nextStep();
+  }
+
+  function handleDateSelect(date: string) {
+    selectedDate = date;
+  }
+
+  // Clear selected date when retrieval method changes to avoid invalid selections
+  $: if (retrievalMethod && data) {
+    // If there's a selected date, check if it's still valid for the new retrieval method
+    if (selectedDate) {
+      const dateAvailability = (data as any)?.dateAvailability as DateAvailability[] || [];
+      const availability = dateAvailability.find((a: DateAvailability) => a.date === selectedDate);
+      if (availability) {
+        const isStillValid = (retrievalMethod === 'pickup' && availability.pickupAvailable) ||
+                             (retrievalMethod === 'delivery' && availability.deliveryAvailable);
+        if (!isStillValid) {
+          selectedDate = '';
+        }
+      }
+    }
   }
 
   async function submitOrder() {
@@ -301,16 +326,25 @@
         <!-- Step 3: Schedule -->
         <div class="space-y-6">
           <h2 class="text-2xl font-semibold mb-6">Choose Completion Date</h2>
-          <div class="text-center py-12">
-            <div class="text-4xl mb-4">📅</div>
-            <p class="text-gray-600 mb-4">Calendar component will be added here</p>
-            <p class="text-sm text-gray-500">You'll be able to select when you'd like your order to be ready</p>
-            <!-- Temporary date input for now -->
-            <div class="form-control max-w-xs mx-auto mt-6">
-              <label class="label" for="temp-date"><span class="label-text">Select Date (temporary)</span></label>
-              <input id="temp-date" type="date" class="input input-bordered bg-gray-50 border-gray-300" bind:value={selectedDate} />
-            </div>
+          <div class="mb-4">
+            <p class="text-gray-600 mb-2">Select when you'd like your order to be ready for {retrievalMethod}</p>
+            <p class="text-sm text-blue-600 mb-2">
+              💡 Only dates available for {retrievalMethod} are shown as selectable
+            </p>
+            {#if selectedDate}
+              <p class="text-sm text-green-600 font-medium">
+                Selected: {new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              </p>
+            {/if}
           </div>
+          
+          <Calendar
+            dateAvailability={(data as any)?.dateAvailability || []}
+            editMode={false}
+            selectedDate={selectedDate}
+            retrievalMethod={retrievalMethod}
+            onDateSelect={handleDateSelect}
+          />
         </div>
 
       {:else if currentStep === 4}

@@ -1,17 +1,17 @@
 <script lang="ts">
   import CTAButton from './CTAButton.svelte';
-  import type { Flavor } from '../stores/flavors';
+  import { Product } from '../stores/product';
   import { getAuthState } from '../auth';
 
-  export let flavor: Flavor;
-  export let onSave: (updatedFlavor: Flavor) => void;
+  export let product: Product;
+  export let onSave: (updatedProduct: Product) => void;
   export let onCancel: () => void;
   
   // Form state
-  let name = flavor.name;
-  let description = flavor.description;
-  let price = flavor.price;
-  let isWeeklySpecial = flavor.isWeeklySpecial;
+  let name = product.name;
+  let description = product.description;
+  let price = product.toDollars();
+  let isWeeklySpecial = product.isWeeklySpecial;
   
   // Validation
   let priceError = '';
@@ -37,15 +37,16 @@
     
     if (!validatePrice()) return;
     
-    const updatedFlavor: Flavor = {
-      ...flavor,
+    const updatedProduct = new Product({
+      ...product,
       name: name.trim(),
       description: description.trim(),
-      price: parseFloat(price.toString()),
+      // ! Warning: This is a hack to get the price in cents
+      priceCents: Math.round(price * 100), 
       isWeeklySpecial
-    };
+    });
     
-    onSave(updatedFlavor);
+    onSave(updatedProduct);
   }
 </script>
 

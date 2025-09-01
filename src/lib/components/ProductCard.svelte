@@ -1,9 +1,9 @@
 <script lang="ts">
   import CTAButton from './CTAButton.svelte';
-  import type { Flavor } from '../stores/flavors';
+  import { Product } from '../stores/product';
   import { cart } from '../stores/cart';
 
-  export let flavor: Flavor;
+  export let product: Product;
   export let onEdit: (() => void) | undefined = undefined;
   export let isAdmin: boolean = false;
   
@@ -12,7 +12,7 @@
       onEdit();
     } else {
       // Add item to cart for non-admin users
-      cart.addItem(flavor);
+      cart.addItem(product);
     }
   }
 </script>
@@ -25,12 +25,12 @@
   
   <!-- Content -->
   <div class="p-6 flex flex-col flex-grow bg-neutral-100">
-    <h3 class="text-xl font-bold text-black mb-2">{flavor.name}</h3>
-    <p class="text-gray-600 mb-4 leading-relaxed flex-grow">{flavor.description}</p>
+    <h3 class="text-xl font-bold text-black mb-2">{product.name}</h3>
+    <p class="text-gray-600 mb-4 leading-relaxed flex-grow">{product.description}</p>
     
     <div class="flex items-center justify-between mt-auto">
       <span class="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">
-        ${flavor.price}
+        ${product.toDollars()}
       </span>
       <CTAButton size="sm" on:click={handleClick}>
         {isAdmin ? 'Edit Me' : 'Add to Cart'}

@@ -5,6 +5,7 @@
   export let editMode = false;
   export let selectedDate: string | null = null;
   export let currentMonth: Date = new Date();
+  export let retrievalMethod: 'pickup' | 'delivery' | null = null; // Filter dates based on retrieval method
   
   // Debug logging
   // $: {
@@ -130,7 +131,16 @@
       editingAvailability = setDateAvailability(dateStr, newAvailability, editingAvailability);
       onScheduleUpdate?.(editingAvailability);
     } else if (!editMode) {
-      // Customer selection mode
+      // Customer selection mode - check if date is available for their retrieval method
+      const availability = getDateAvailability(dateStr, dateAvailability);
+      
+      if (retrievalMethod === 'pickup' && !availability.pickupAvailable) {
+        return; // Can't select this date for pickup
+      }
+      if (retrievalMethod === 'delivery' && !availability.deliveryAvailable) {
+        return; // Can't select this date for delivery
+      }
+      
       selectedDate = dateStr;
       onDateSelect?.(dateStr);
     }
@@ -142,6 +152,21 @@
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return date < today;
+  }
+  
+  function isDateSelectable(dateStr: string): boolean {
+    if (editMode || isEditing) return true; // Admin can always interact with dates
+    
+    const availability = getDateAvailability(dateStr, dateAvailability);
+    
+    if (retrievalMethod === 'pickup') {
+      return availability.pickupAvailable;
+    } else if (retrievalMethod === 'delivery') {
+      return availability.deliveryAvailable;
+    }
+    
+    // If no specific retrieval method, allow selection if either method is available
+    return availability.pickupAvailable || availability.deliveryAvailable;
   }
   
   $: calendarDays = getCalendarDays(currentMonth);
@@ -229,13 +254,14 @@
           {@const availability = getAvailabilityForDate(dateStr, dayOfWeek)}
           {@const isPast = isPastDate(day)}
           {@const isSelected = selectedDate === dateStr}
+          {@const isSelectable = isDateSelectable(dateStr)}
           {@const cssClass = availability.deliveryAvailable && availability.pickupAvailable ? 'both-available' : 
                              availability.deliveryAvailable ? 'delivery-only' : 
                              availability.pickupAvailable ? 'pickup-only' : 'unavailable'}
           
           <button
-             class="calendar-day {cssClass} {isSelected ? 'selected' : ''} {isPast ? 'past' : ''} {isEditing ? 'editing' : ''}"
-             disabled={isPast && !editMode}
+             class="calendar-day {cssClass} {isSelected ? 'selected' : ''} {isPast ? 'past' : ''} {isEditing ? 'editing' : ''} {!isSelectable && !editMode ? 'not-selectable' : ''}"
+             disabled={(isPast && !editMode) || (!isSelectable && !editMode)}
              on:click={() => toggleDayAvailability(dateStr)}
              aria-label="{monthNames[day.getMonth()]} {day.getDate()}, {availability.deliveryAvailable && availability.pickupAvailable ? 'Both Available' : availability.deliveryAvailable ? 'Delivery Only' : availability.pickupAvailable ? 'Pickup Only' : 'Unavailable'}"
            >
@@ -346,6 +372,18 @@
     color: hsl(var(--nc));
     opacity: 0.5;
     cursor: not-allowed;
+  }
+  
+  .calendar-day.not-selectable {
+    background-color: #f3f4f6;
+    color: #9ca3af;
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  .calendar-day.not-selectable:hover {
+    scale: 1;
+    box-shadow: none;
   }
   
   .calendar-day.editing {
