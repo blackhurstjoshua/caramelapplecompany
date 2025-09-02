@@ -1,23 +1,25 @@
 <script lang="ts">
   import Calendar from '$lib/components/Calendar.svelte';
   import type { PageData } from './$types';
-  import type { DateAvailability } from '$lib/types';
-  
+  import type { ScheduleBlock } from '$lib/stores/schedule';
+  import { upsertSchedule } from '$lib/services/schedule';
+
   export let data: PageData;
   
-  let dateAvailability: DateAvailability[] = data.dateAvailability;
+  let schedule: ScheduleBlock[] = data.schedule;
   let currentMonth = new Date();
   let saveStatus: 'idle' | 'saving' | 'saved' | 'error' = 'idle';
   
-  async function handleSave(newDateAvailability: DateAvailability[]) {
+  async function handleSave(updatedSchedule: ScheduleBlock[]) {
     saveStatus = 'saving';
     
     try {
-      // Here you would normally save to your database
-      // For now, we'll just simulate a save operation
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Save each updated schedule block to database
+      for (const scheduleBlock of updatedSchedule) {
+        await upsertSchedule(scheduleBlock);
+      }
       
-      dateAvailability = newDateAvailability;
+      schedule = updatedSchedule;
       saveStatus = 'saved';
       
       // Reset status after 3 seconds
@@ -82,7 +84,7 @@
     <!-- Calendar Component -->
     <div class="bg-white rounded-lg shadow-lg p-6">
       <Calendar
-        {dateAvailability}
+        {schedule}
         {currentMonth}
         editMode={true}
         onSave={handleSave}

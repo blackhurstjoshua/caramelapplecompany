@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type { DateAvailability } from '$lib/types';
+  import type { ScheduleBlock } from '$lib/stores/schedule';
   
-  export let dateAvailability: DateAvailability[] = [];
+  export let schedule: ScheduleBlock[] = [];
   export let editMode = false;
   export let selectedDate: string | null = null;
   export let currentMonth: Date = new Date();
@@ -15,12 +15,13 @@
   
   // Callback props instead of event dispatcher
   export let onDateSelect: ((date: string) => void) | undefined = undefined;
-  export let onScheduleUpdate: ((availability: DateAvailability[]) => void) | undefined = undefined;
-  export let onSave: ((availability: DateAvailability[]) => void) | undefined = undefined;
+  export let onScheduleUpdate: ((schedule: ScheduleBlock[]) => void) | undefined = undefined;
+  export let onSave: ((schedule: ScheduleBlock[]) => void) | undefined = undefined;
   export let onCancel: (() => void) | undefined = undefined;
   
-  let editingAvailability: DateAvailability[] = [];
+  let editingSchedule: ScheduleBlock[] = [];
   let isEditing = false;
+  let changedDates: Set<string> = new Set();
   
   // Calendar helpers
   const monthNames = [
@@ -62,82 +63,107 @@
   }
   
   function startEditing() {
-    // Initialize editing with current availability
-    editingAvailability = [...dateAvailability];
+    // Initialize editing with current schedule
+    editingSchedule = [...schedule];
+    changedDates = new Set();
     isEditing = true;
   }
   
   function cancelEditing() {
-    editingAvailability = [];
+    editingSchedule = [];
+    changedDates = new Set();
     isEditing = false;
     onCancel?.();
   }
   
   function saveChanges() {
-    onSave?.(editingAvailability);
+    // Only return the changed schedule blocks
+    const changedBlocks = editingSchedule.filter(block => changedDates.has(block.blockedDate));
+    onSave?.(changedBlocks);
     isEditing = false;
+    changedDates = new Set();
   }
   
-  function getDateAvailability(dateStr: string, availabilityList: DateAvailability[]): DateAvailability {
-    const availability = availabilityList.find(a => a.date === dateStr);
-    if (availability) {
-      console.log(`Found schedule data for ${dateStr}:`, availability);
-      return availability;
+  function getScheduleBlock(dateStr: string, scheduleList: ScheduleBlock[]): ScheduleBlock {
+    const scheduleBlock = scheduleList.find(block => block.blockedDate === dateStr);
+    if (scheduleBlock) {
+      console.log(`Found schedule data for ${dateStr}:`, scheduleBlock);
+      return scheduleBlock;
     }
     
     // Default behavior based on day of week
     const dayOfWeek = new Date(dateStr).getDay();
     if (dayOfWeek === 6) { // Sunday
-      console.log(`Using Sunday default for ${dateStr}`);
-      return { date: dateStr, deliveryAvailable: false, pickupAvailable: true }; // Sunday default: pickup only
+      return { 
+        id: crypto.randomUUID(),
+        blockedDate: dateStr, 
+        deliveryBlocked: true, // Sunday default: delivery blocked (pickup only)
+        pickupBlocked: false,
+        createdAt: new Date().toISOString()
+      }; 
     } else {
-      console.log(`Using weekday default for ${dateStr}`);
-      return { date: dateStr, deliveryAvailable: true, pickupAvailable: true }; // Other days: both available
+      return { 
+        id: crypto.randomUUID(),
+        blockedDate: dateStr, 
+        deliveryBlocked: false, // Weekday default: both available
+        pickupBlocked: false,
+        createdAt: new Date().toISOString()
+      }; 
     }
   }
   
-  function setDateAvailability(dateStr: string, availability: Partial<DateAvailability>, availabilityList: DateAvailability[]): DateAvailability[] {
-    const existingIndex = availabilityList.findIndex(a => a.date === dateStr);
+  function setScheduleBlock(dateStr: string, scheduleUpdate: Partial<ScheduleBlock>, scheduleList: ScheduleBlock[]): ScheduleBlock[] {
+    // Track that this date has been changed
+    changedDates.add(dateStr);
+    
+    const existingIndex = scheduleList.findIndex(block => block.blockedDate === dateStr);
     if (existingIndex >= 0) {
       // Update existing
-      availabilityList[existingIndex] = { ...availabilityList[existingIndex], ...availability };
-      return [...availabilityList];
+      scheduleList[existingIndex] = { ...scheduleList[existingIndex], ...scheduleUpdate };
+      return [...scheduleList];
     } else {
       // Add new
-      return [...availabilityList, { date: dateStr, deliveryAvailable: true, pickupAvailable: true, ...availability }];
+      return [...scheduleList, { 
+        id: crypto.randomUUID(),
+        blockedDate: dateStr, 
+        deliveryBlocked: false, 
+        pickupBlocked: false,
+        createdAt: new Date().toISOString(),
+        ...scheduleUpdate 
+      }];
     }
   }
   
   function toggleDayAvailability(dateStr: string) {
     if (isEditing) {
       // Cycle through 4 states: both → delivery only → pickup only → unavailable → both
-      const current = getDateAvailability(dateStr, editingAvailability);
-      let newAvailability: Partial<DateAvailability>;
+      const current = getScheduleBlock(dateStr, editingSchedule);
+      let newScheduleUpdate: Partial<ScheduleBlock>;
       
-      if (current.deliveryAvailable && current.pickupAvailable) {
-        // Both available → Delivery only
-        newAvailability = { deliveryAvailable: true, pickupAvailable: false };
-      } else if (current.deliveryAvailable && !current.pickupAvailable) {
-        // Delivery only → Pickup only
-        newAvailability = { deliveryAvailable: false, pickupAvailable: true };
-      } else if (!current.deliveryAvailable && current.pickupAvailable) {
-        // Pickup only → Unavailable
-        newAvailability = { deliveryAvailable: false, pickupAvailable: false };
+      if (!current.deliveryBlocked && !current.pickupBlocked) {
+        // Both available → Delivery only (block pickup)
+        newScheduleUpdate = { deliveryBlocked: false, pickupBlocked: true };
+      } else if (!current.deliveryBlocked && current.pickupBlocked) {
+        // Delivery only → Pickup only (block delivery)
+        newScheduleUpdate = { deliveryBlocked: true, pickupBlocked: false };
+      } else if (current.deliveryBlocked && !current.pickupBlocked) {
+        // Pickup only → Unavailable (block both)
+        newScheduleUpdate = { deliveryBlocked: true, pickupBlocked: true };
       } else {
-        // Unavailable → Both available
-        newAvailability = { deliveryAvailable: true, pickupAvailable: true };
+        // Unavailable → Both available (unblock both)
+        newScheduleUpdate = { deliveryBlocked: false, pickupBlocked: false };
       }
       
-      editingAvailability = setDateAvailability(dateStr, newAvailability, editingAvailability);
-      onScheduleUpdate?.(editingAvailability);
+      editingSchedule = setScheduleBlock(dateStr, newScheduleUpdate, editingSchedule);
+      onScheduleUpdate?.(editingSchedule);
     } else if (!editMode) {
       // Customer selection mode - check if date is available for their retrieval method
-      const availability = getDateAvailability(dateStr, dateAvailability);
+      const scheduleBlock = getScheduleBlock(dateStr, schedule);
       
-      if (retrievalMethod === 'pickup' && !availability.pickupAvailable) {
+      if (retrievalMethod === 'pickup' && scheduleBlock.pickupBlocked) {
         return; // Can't select this date for pickup
       }
-      if (retrievalMethod === 'delivery' && !availability.deliveryAvailable) {
+      if (retrievalMethod === 'delivery' && scheduleBlock.deliveryBlocked) {
         return; // Can't select this date for delivery
       }
       
@@ -157,25 +183,25 @@
   function isDateSelectable(dateStr: string): boolean {
     if (editMode || isEditing) return true; // Admin can always interact with dates
     
-    const availability = getDateAvailability(dateStr, dateAvailability);
+    const scheduleBlock = getScheduleBlock(dateStr, schedule);
     
     if (retrievalMethod === 'pickup') {
-      return availability.pickupAvailable;
+      return !scheduleBlock.pickupBlocked;
     } else if (retrievalMethod === 'delivery') {
-      return availability.deliveryAvailable;
+      return !scheduleBlock.deliveryBlocked;
     }
     
     // If no specific retrieval method, allow selection if either method is available
-    return availability.pickupAvailable || availability.deliveryAvailable;
+    return !scheduleBlock.pickupBlocked || !scheduleBlock.deliveryBlocked;
   }
   
   $: calendarDays = getCalendarDays(currentMonth);
   
-  // Create reactive availability checker
-  $: getAvailabilityForDate = (dateStr: string, dayOfWeek: number): DateAvailability => {
-    // Get current availability list
-    const availabilityList = isEditing ? editingAvailability : dateAvailability;
-    return getDateAvailability(dateStr, availabilityList);
+  // Create reactive schedule checker
+  $: getScheduleForDate = (dateStr: string, dayOfWeek: number): ScheduleBlock => {
+    // Get current schedule list
+    const scheduleList = isEditing ? editingSchedule : schedule;
+    return getScheduleBlock(dateStr, scheduleList);
   };
 </script>
 
@@ -251,30 +277,30 @@
                 {:else}
           {@const dateStr = formatDate(day)}
           {@const dayOfWeek = day.getDay()}
-          {@const availability = getAvailabilityForDate(dateStr, dayOfWeek)}
+          {@const scheduleBlock = getScheduleForDate(dateStr, dayOfWeek)}
           {@const isPast = isPastDate(day)}
           {@const isSelected = selectedDate === dateStr}
           {@const isSelectable = isDateSelectable(dateStr)}
-          {@const cssClass = availability.deliveryAvailable && availability.pickupAvailable ? 'both-available' : 
-                             availability.deliveryAvailable ? 'delivery-only' : 
-                             availability.pickupAvailable ? 'pickup-only' : 'unavailable'}
+          {@const cssClass = !scheduleBlock.deliveryBlocked && !scheduleBlock.pickupBlocked ? 'both-available' : 
+                             !scheduleBlock.deliveryBlocked ? 'delivery-only' : 
+                             !scheduleBlock.pickupBlocked ? 'pickup-only' : 'unavailable'}
           
           <button
              class="calendar-day {cssClass} {isSelected ? 'selected' : ''} {isPast ? 'past' : ''} {isEditing ? 'editing' : ''} {!isSelectable && !editMode ? 'not-selectable' : ''}"
              disabled={(isPast && !editMode) || (!isSelectable && !editMode)}
              on:click={() => toggleDayAvailability(dateStr)}
-             aria-label="{monthNames[day.getMonth()]} {day.getDate()}, {availability.deliveryAvailable && availability.pickupAvailable ? 'Both Available' : availability.deliveryAvailable ? 'Delivery Only' : availability.pickupAvailable ? 'Pickup Only' : 'Unavailable'}"
+             aria-label="{monthNames[day.getMonth()]} {day.getDate()}, {!scheduleBlock.deliveryBlocked && !scheduleBlock.pickupBlocked ? 'Both Available' : !scheduleBlock.deliveryBlocked ? 'Delivery Only' : !scheduleBlock.pickupBlocked ? 'Pickup Only' : 'Unavailable'}"
            >
              <span class="day-number">{day.getDate()}</span>
              
              <!-- Show availability icons -->
              {#if !isPast}
                <span class="availability-icon">
-                 {#if availability.deliveryAvailable && availability.pickupAvailable}
+                 {#if !scheduleBlock.deliveryBlocked && !scheduleBlock.pickupBlocked}
                    🚛📦
-                 {:else if availability.deliveryAvailable}
+                 {:else if !scheduleBlock.deliveryBlocked}
                    🚛
-                 {:else if availability.pickupAvailable}
+                 {:else if !scheduleBlock.pickupBlocked}
                    📦
                  {:else}
                    ❌
