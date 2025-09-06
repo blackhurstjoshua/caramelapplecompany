@@ -55,19 +55,19 @@
       <h2 class="text-xl font-semibold text-gray-800 mb-4">Customer Information</h2>
       <div class="space-y-3">
         <div>
-          <label class="text-sm font-medium text-gray-500">Name</label>
+          <span class="text-sm font-medium text-gray-500">Name</span>
           <p class="text-gray-900">{mockCustomer.name}</p>
         </div>
         <div>
-          <label class="text-sm font-medium text-gray-500">Email</label>
+          <span class="text-sm font-medium text-gray-500">Email</span>
           <p class="text-gray-900">{mockCustomer.email}</p>
         </div>
         <div>
-          <label class="text-sm font-medium text-gray-500">Phone</label>
+          <span class="text-sm font-medium text-gray-500">Phone</span>
           <p class="text-gray-900">{mockCustomer.phone}</p>
         </div>
         <div>
-          <label class="text-sm font-medium text-gray-500">Join Date</label>
+          <span class="text-sm font-medium text-gray-500">Join Date</span>
           <p class="text-gray-900">{new Date(mockCustomer.joinDate).toLocaleDateString()}</p>
         </div>
       </div>
@@ -78,15 +78,15 @@
       <h2 class="text-xl font-semibold text-gray-800 mb-4">Statistics</h2>
       <div class="space-y-3">
         <div>
-          <label class="text-sm font-medium text-gray-500">Total Orders</label>
+          <span class="text-sm font-medium text-gray-500">Total Orders</span>
           <p class="text-gray-900 text-2xl font-bold">{mockCustomer.totalOrders}</p>
         </div>
         <div>
-          <label class="text-sm font-medium text-gray-500">Total Spent</label>
+          <span class="text-sm font-medium text-gray-500">Total Spent</span>
           <p class="text-gray-900 text-2xl font-bold">${mockCustomer.totalSpent.toFixed(2)}</p>
         </div>
         <div>
-          <label class="text-sm font-medium text-gray-500">Average Order</label>
+          <span class="text-sm font-medium text-gray-500">Average Order</span>
           <p class="text-gray-900 text-lg">${(mockCustomer.totalSpent / mockCustomer.totalOrders).toFixed(2)}</p>
         </div>
       </div>

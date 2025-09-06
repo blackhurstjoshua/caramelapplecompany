@@ -50,15 +50,15 @@
       <h2 class="text-xl font-semibold text-gray-800 mb-4">Customer Information</h2>
       <div class="space-y-3">
         <div>
-          <label class="text-sm font-medium text-gray-500">Name</label>
+          <span class="text-sm font-medium text-gray-500">Name</span>
           <p class="text-gray-900">{mockOrder.customerName}</p>
         </div>
         <div>
-          <label class="text-sm font-medium text-gray-500">Email</label>
+          <span class="text-sm font-medium text-gray-500">Email</span>
           <p class="text-gray-900">{mockOrder.customerEmail}</p>
         </div>
         <div>
-          <label class="text-sm font-medium text-gray-500">Phone</label>
+          <span class="text-sm font-medium text-gray-500">Phone</span>
           <p class="text-gray-900">{mockOrder.customerPhone}</p>
         </div>
       </div>
@@ -69,15 +69,15 @@
       <h2 class="text-xl font-semibold text-gray-800 mb-4">Order Information</h2>
       <div class="space-y-3">
         <div>
-          <label class="text-sm font-medium text-gray-500">Order Date</label>
+          <span class="text-sm font-medium text-gray-500">Order Date</span>
           <p class="text-gray-900">{new Date(mockOrder.orderDate).toLocaleDateString()}</p>
         </div>
         <div>
-          <label class="text-sm font-medium text-gray-500">Status</label>
+          <span class="text-sm font-medium text-gray-500">Status</span>
           <span class="badge badge-success">{mockOrder.status}</span>
         </div>
         <div>
-          <label class="text-sm font-medium text-gray-500">Total</label>
+          <span class="text-sm font-medium text-gray-500">Total</span>
           <p class="text-gray-900 text-lg font-semibold">${mockOrder.total.toFixed(2)}</p>
         </div>
       </div>

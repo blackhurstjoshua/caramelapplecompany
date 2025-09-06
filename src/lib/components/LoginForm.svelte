@@ -84,9 +84,9 @@
                   disabled={loading}
                 />
                 {#if emailError}
-                  <label class="label">
+                  <div class="label">
                     <span class="label-text-alt text-red-600">{emailError}</span>
-                  </label>
+                  </div>
                 {/if}
               </div>
               
@@ -105,9 +105,9 @@
                   disabled={loading}
                 />
                 {#if passwordError}
-                  <label class="label">
+                  <div class="label">
                     <span class="label-text-alt text-red-600">{passwordError}</span>
-                  </label>
+                  </div>
                 {/if}
               </div>
               
