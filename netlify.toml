@@ -1,17 +1,3 @@
-[build]
-  command = "npm run build"
-  publish = "build"
-
 [build.environment]
   # Disable secrets scanning for PUBLIC_ environment variables that are meant to be exposed
   SECRETS_SCAN_OMIT_KEYS = "PUBLIC_SUPABASE_URL,PUBLIC_SUPABASE_ANON_KEY"
-
-[[redirects]]
-  from = "/*"
-  to = "/.netlify/functions/sveltekit-render"
-  status = 200
-
-[[headers]]
-  for = "/_app/immutable/*"
-  [headers.values]
-    cache-control = "public, immutable, max-age=31536000"
