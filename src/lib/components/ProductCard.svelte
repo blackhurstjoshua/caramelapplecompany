@@ -2,6 +2,7 @@
   import CTAButton from './CTAButton.svelte';
   import { Product } from '../stores/product';
   import { cart } from '../stores/cart';
+  import { getImageUrl } from '../services/images';
 
   export let product: Product;
   export let onEdit: (() => void) | undefined = undefined;
@@ -26,9 +27,21 @@
 </script>
 
 <div class="bg-neutral-100 rounded-2xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-lg transition-shadow duration-300 flex flex-col h-full">
-  <!-- Image placeholder -->
+  <!-- Image section -->
   <div class="aspect-square bg-gradient-to-br from-amber-100 to-orange-200 flex items-center justify-center relative">
-    <div class="text-6xl">🍎</div>
+    {#if product.imagePath}
+      <!-- Show product image -->
+      <img 
+        src={getImageUrl(product.imagePath)}
+        alt={product.name}
+        class="w-full h-full object-cover"
+        loading="lazy"
+      />
+    {:else}
+      <!-- Default placeholder -->
+      <div class="text-6xl">🍎</div>
+    {/if}
+    
     {#if isAdmin && onDelete}
       <!-- Delete button for admin -->
       <button 

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { cart, cartTotal, type CartItem } from '$lib/stores/cart';
   import { goto } from '$app/navigation';
+  import Header from '$lib/components/Header.svelte';
   import Calendar from '$lib/components/Calendar.svelte';
   import type { PageData } from './$types';
   import type { DateAvailability } from '$lib/types';
@@ -172,6 +173,8 @@
     }
   }
 </script>
+
+<Header />
 
 <div class="min-h-screen bg-white">
   <div class="max-w-4xl mx-auto p-4 md:p-8">

@@ -1,7 +1,9 @@
 <script lang="ts">
   import CTAButton from './CTAButton.svelte';
+  import ImageUpload from './ImageUpload.svelte';
   import { Product } from '../stores/product';
   import { getAuthState } from '../auth';
+  import { uploadImage, getImageUrl, type ImageUploadResult } from '../services/images';
 
   export let product: Product;
   export let onSave: (updatedProduct: Product) => void;
@@ -12,6 +14,8 @@
   let description = product.description;
   let price = product.toDollars();
   let isWeeklySpecial = product.isWeeklySpecial;
+  let imagePath = product.imagePath || '';
+  let imageUrl = '';
   
   // Validation
   let priceError = '';
@@ -26,6 +30,13 @@
     return true;
   }
   
+  function handleImageUpload(result: ImageUploadResult) {
+    if (result.success && result.url && result.path) {
+      imagePath = result.path;
+      imageUrl = result.url;
+    }
+  }
+
   function handleSave() {
     // Check authentication before saving
     const authState = getAuthState();
@@ -41,6 +52,7 @@
       ...product,
       name: name.trim(),
       description: description.trim(),
+      imagePath: imagePath,
       // ! Warning: This is a hack to get the price in cents
       priceCents: Math.round(price * 100), 
       isWeeklySpecial
@@ -51,9 +63,20 @@
 </script>
 
 <div class="bg-neutral-100 rounded-2xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.05)] border-2 border-blue-300 flex flex-col h-full">
-  <!-- Image placeholder -->
+  <!-- Image section -->
   <div class="aspect-square bg-gradient-to-br from-amber-100 to-orange-200 flex items-center justify-center relative">
-    <div class="text-6xl">🍎</div>
+    {#if imageUrl || imagePath || product.imagePath}
+      <!-- Show uploaded image -->
+      <img 
+        src={imageUrl || getImageUrl(imagePath || product.imagePath)}
+        alt={name}
+        class="w-full h-full object-cover"
+      />
+    {:else}
+      <!-- Default placeholder -->
+      <div class="text-6xl">🍎</div>
+    {/if}
+    
     <!-- Cancel button -->
     <button 
       on:click={onCancel}
@@ -65,6 +88,19 @@
   
   <!-- Form Content -->
   <div class="p-6 flex flex-col flex-grow bg-neutral-100 space-y-4">
+    <!-- Image Upload -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">Product Image</label>
+      <div class="max-w-xs">
+        <ImageUpload
+          folder="products"
+          onUploadComplete={handleImageUpload}
+          label="Upload Product Image"
+          showPreview={false}
+        />
+      </div>
+    </div>
+    
     <!-- Name Input -->
     <div>
       <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>

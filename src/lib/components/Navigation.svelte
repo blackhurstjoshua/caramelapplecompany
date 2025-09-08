@@ -8,8 +8,6 @@
   
     let { isDrawerOpen = $bindable(false), isCartDrawerOpen = $bindable(false), children } = $props();
 
-  let scrollY = $state(0);
-  let isScrolled = $state(false);
   let isAnimating = $state(false);
   let previousCartCount = 0;
   
@@ -36,15 +34,9 @@
     cart.removeItem(itemId);
   }
   
-  function handleScroll() {
-    scrollY = window.scrollY;
-    isScrolled = scrollY > 10; // Trigger after 10px of scroll
-  }
   
   onMount(() => {
-    window.addEventListener('scroll', handleScroll);
     previousCartCount = $cartCount; // Initialize on mount
-    return () => window.removeEventListener('scroll', handleScroll);
   });
 
   $effect(() => {
@@ -61,43 +53,9 @@
 <div class="drawer">
   <input id="drawer-toggle" type="checkbox" class="drawer-toggle" bind:checked={isDrawerOpen} />
   
-  <!-- Company Name Overlay with dynamic background and sizing -->
-  <div class="fixed top-0 left-0 right-0 z-40 flex justify-center transition-all duration-300 ease-in-out" 
-       class:scrolled={isScrolled}>
-    <div class="text-center transition-all duration-300 ease-in-out" 
-         class:mt-4={!isScrolled} 
-         class:mt-1={isScrolled}>
-      <h1 class="text-black drop-shadow-lg transition-all duration-300 ease-in-out" 
-          class:text-4xl={!isScrolled}
-          class:md:text-5xl={!isScrolled} 
-          class:lg:text-6xl={!isScrolled}
-          class:text-2xl={isScrolled} 
-          class:md:text-3xl={isScrolled} 
-          class:lg:text-4xl={isScrolled}
-          style="font-family: 'Oswald', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-weight: 400; letter-spacing: 0.15em; word-spacing: 0.3em;">
-        <!-- Mobile: Single line with CO. -->
-        <span class="sm:hidden">CARAMEL APPLE CO.</span>
-        <!-- Desktop: Two lines with full COMPANY -->
-        <span class="hidden sm:block">
-          CARAMEL APPLE<br>
-          <span class="transition-all duration-300 ease-in-out"
-                class:text-2xl={!isScrolled} 
-                class:md:text-3xl={!isScrolled} 
-                class:lg:text-4xl={!isScrolled}
-                class:text-lg={isScrolled} 
-                class:md:text-xl={isScrolled} 
-                class:lg:text-2xl={isScrolled}>COMPANY</span>
-        </span>
-      </h1>
-    </div>
-  </div>
   
-  <!-- Shopping Cart Icon - fades in when scrolling -->
-  <div class="fixed top-4 right-4 z-50 transition-all duration-300 ease-in-out"
-       class:opacity-0={!isScrolled}
-       class:opacity-100={isScrolled}
-       class:pointer-events-none={!isScrolled}
-       class:pointer-events-auto={isScrolled}>
+  <!-- Shopping Cart Icon -->
+  <div class="fixed top-4 right-4 z-50">
     <!-- SVG gradient definition -->
     <svg class="absolute w-0 h-0">
       <defs>
@@ -273,13 +231,6 @@
 </div>
 
 <style>
-  .scrolled {
-    background-color: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  }
-  
   .nav-link:hover {
     background: linear-gradient(to right, var(--color-apple-dark) 0%, var(--color-apple-medium) 55%, var(--color-apple-light) 100%);
     -webkit-background-clip: text;

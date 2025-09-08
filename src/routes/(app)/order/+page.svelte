@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { PageData } from './$types';
+  import Header from '$lib/components/Header.svelte';
   import ProductCard from '$lib/components/ProductCard.svelte';
   import { Product } from '$lib/stores/product';
   
@@ -14,7 +15,9 @@
   <meta name="description" content="Browse and order our delicious caramel apples. Fresh, handcrafted treats made with love." />
 </svelte:head>
 
-<div class="max-w-7xl mx-auto px-4 lg:px-8 py-8 pt-24">
+<Header />
+
+<div class="max-w-7xl mx-auto px-4 lg:px-8 py-8">
   <!-- Page Header -->
   <div class="mb-8">
     <h1 class="text-3xl font-bold text-black mb-2">Order Caramel Apples</h1>

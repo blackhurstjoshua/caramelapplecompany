@@ -1,16 +1,22 @@
 <script lang="ts">
   import CTAButton from './CTAButton.svelte';
+  
+  // Hardcoded hero image for now
+  const heroImageUrl = 'https://xbjkguuwlwqhrfumrkye.supabase.co/storage/v1/object/public/images/20201113_065420.jpg';
 </script>
 
 <section class="bg-cream">
   <!-- Video Section (Hidden on mobile) -->
   <div class="w-full hidden sm:block">
     <div class="max-w-6xl mx-auto px-4 pt-8 pb-4">
-      <!-- Video Placeholder -->
-      <div class="w-full aspect-video bg-gradient-to-br from-gray-200 to-gray-300 rounded-2xl overflow-hidden shadow-lg flex items-center justify-center">
-        <div class="text-center">
-          <p class="text-gray-600">This is where your caramel apple video will go</p>
-        </div>
+      <!-- Hero Image -->
+      <div class="w-full aspect-video bg-gradient-to-br from-gray-200 to-gray-300 rounded-2xl overflow-hidden shadow-lg">
+        <img 
+          src={heroImageUrl} 
+          alt="Caramel Apple Company - Delicious handcrafted caramel apples"
+          class="w-full h-full object-cover"
+          loading="eager"
+        />
       </div>
     </div>
   </div>

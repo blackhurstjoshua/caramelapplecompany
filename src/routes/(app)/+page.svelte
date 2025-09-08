@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Header from '$lib/components/Header.svelte';
   import Hero from '$lib/components/Hero.svelte';
   import WeeklyFlavors from '$lib/components/WeeklyFlavors.svelte';
   import OurStory from '$lib/components/OurStory.svelte';
@@ -11,6 +12,9 @@
 </svelte:head>
 
 <main>
+  <!-- Header Section -->
+  <Header />
+  
   <!-- Hero Section -->
   <Hero />
   
