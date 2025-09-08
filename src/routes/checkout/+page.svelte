@@ -85,11 +85,21 @@
     selectedDate = date;
   }
 
+  // Convert DateAvailability to ScheduleBlock format for Calendar component
+  $: schedule = data?.dateAvailability?.map((availability: DateAvailability) => ({
+    id: crypto.randomUUID(),
+    blockedDate: availability.date,
+    deliveryBlocked: !availability.deliveryAvailable,
+    pickupBlocked: !availability.pickupAvailable,
+    reason: availability.reason,
+    createdAt: new Date().toISOString()
+  })) || [];
+
   // Clear selected date when retrieval method changes to avoid invalid selections
   $: if (retrievalMethod && data) {
     // If there's a selected date, check if it's still valid for the new retrieval method
     if (selectedDate) {
-      const dateAvailability = (data as any)?.dateAvailability as DateAvailability[] || [];
+      const dateAvailability = data?.dateAvailability || [];
       const availability = dateAvailability.find((a: DateAvailability) => a.date === selectedDate);
       if (availability) {
         const isStillValid = (retrievalMethod === 'pickup' && availability.pickupAvailable) ||
@@ -127,9 +137,9 @@
       },
       cart: $cart.map((item: CartItem) => ({
         id: item.id,
-        flavorId: item.flavor.id,
-        name: item.flavor.name,
-        unitPrice: item.flavor.price,
+        productId: item.product.id,
+        name: item.product.name,
+        unitPrice: item.product.toDollars(),
         quantity: item.quantity
       })),
       totals: { subtotal, total }
@@ -213,10 +223,10 @@
               {#each $cart as item (item.id)}
                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div>
-                    <h3 class="font-medium">{item.flavor.name}</h3>
-                    <p class="text-sm text-gray-600">${item.flavor.price.toFixed(2)} each × {item.quantity}</p>
+                    <h3 class="font-medium">{item.product.name}</h3>
+                    <p class="text-sm text-gray-600">${item.product.toDollars().toFixed(2)} each × {item.quantity}</p>
                   </div>
-                  <div class="text-lg font-semibold">${(item.flavor.price * item.quantity).toFixed(2)}</div>
+                  <div class="text-lg font-semibold">${(item.product.toDollars() * item.quantity).toFixed(2)}</div>
                 </div>
               {/each}
               
@@ -342,7 +352,7 @@
           </div>
           
           <Calendar
-            dateAvailability={(data as any)?.dateAvailability || []}
+            schedule={schedule}
             editMode={false}
             selectedDate={selectedDate}
             retrievalMethod={retrievalMethod}
