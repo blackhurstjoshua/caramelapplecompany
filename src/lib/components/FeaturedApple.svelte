@@ -16,7 +16,7 @@
   <div class="max-w-7xl mx-auto px-4 lg:px-8">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
       <!-- Content -->
-      <div class={isReversed ? "order-last" : "order-first"}>
+      <div class={isReversed ? "order-last lg:order-last" : "order-last lg:order-first"}>
         <h2 class="text-3xl lg:text-5xl font-bold text-black mb-6 leading-tight">
           Featured Apple: 
           <span class="text-black">{product.name}</span>
@@ -43,7 +43,7 @@
       </div>
       
       <!-- Image -->
-      <div class={isReversed ? "order-first" : "order-last"}>
+      <div class={isReversed ? "order-first lg:order-first" : "order-first lg:order-last"}>
         <div class="aspect-square bg-gradient-to-br from-amber-50 to-orange-100 rounded-2xl overflow-hidden shadow-sm">
           {#if product.imagePath}
             <img 
