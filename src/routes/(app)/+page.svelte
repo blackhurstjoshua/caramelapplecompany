@@ -3,6 +3,7 @@
   import Hero from '$lib/components/Hero.svelte';
   import WeeklyFlavors from '$lib/components/WeeklyFlavors.svelte';
   import OurStory from '$lib/components/OurStory.svelte';
+  import HomeContent from '$lib/components/HomeContent.svelte';
   import Footer from '$lib/components/Footer.svelte';
 </script>
 
@@ -18,11 +19,8 @@
   <!-- Hero Section -->
   <Hero />
   
-  <!-- Weekly Flavors Section -->
-  <WeeklyFlavors />
-  
-  <!-- Our Story Section -->
-  <OurStory />
+  <!-- Featured Apples Section -->
+  <HomeContent />
   
   <!-- Footer -->
   <Footer />

@@ -9,7 +9,7 @@
       <div>
         <h2 class="text-3xl lg:text-5xl font-bold text-black mb-6 leading-tight">
           Our Story: From Family Recipe to 
-          <span class="text-[#FF007A]">Sweet Success</span>
+          <span class="text-black">Sweet Success</span>
         </h2>
         
         <p class="text-lg text-gray-600 mb-6 leading-relaxed">

@@ -3,7 +3,6 @@
   
   const footerLinks = [
     { href: '/', label: 'Home' },
-    { href: '/featured', label: 'Featured' },
     { href: '/product', label: 'Product' },
     { href: '/about', label: 'About' },
     { href: '/about', label: 'Contact' }
@@ -15,7 +14,7 @@
   ];
 </script>
 
-<footer class="bg-gradient-to-br from-amber-100 to-orange-200 text-black font-bold py-12 lg:py-16">
+<footer class="bg-black text-white font-bold py-12 lg:py-16">
   <div class="max-w-7xl mx-auto px-4 lg:px-8">
     <!-- Main footer content -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
@@ -24,7 +23,7 @@
         <h3 class="font-semibold text-2xl mb-6">Navigation</h3>
         <div class="grid grid-cols-2 gap-4">
           {#each footerLinks as link}
-            <a href={link.href} class="text-lg text-black footer-link transition-colors duration-200 py-2">
+            <a href={link.href} class="text-lg text-white footer-link transition-colors duration-200 py-2">
               {link.label}
             </a>
           {/each}
@@ -38,12 +37,12 @@
           {#each socialLinks as social}
             <a 
               href={social.href}
-              class="w-12 h-12 bg-white/70 rounded-full flex items-center justify-center social-link transition-colors duration-200"
+              class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center social-link transition-colors duration-200"
               aria-label={social.label}
               target="_blank"
               rel="noopener noreferrer"
             >
-              <svelte:component this={social.icon} class="w-6 h-6 text-black" />
+              <svelte:component this={social.icon} class="w-6 h-6 text-white" />
             </a>
           {/each}
         </div>
@@ -51,13 +50,13 @@
     </div>
     
     <!-- Bottom section -->
-    <div class="border-t border-gray-300 pt-8 flex flex-col md:flex-row justify-between items-center">
+    <div class="border-t border-gray-600 pt-8 flex flex-col md:flex-row justify-between items-center">
       <div class="flex items-center mb-4 md:mb-0">
         <span class="text-2xl mr-2">🍎</span>
         <span class="font-bold text-2xl" style="font-family: 'Oswald', sans-serif;">Caramel Apple Co.</span>
       </div>
       
-      <div class="text-sm text-gray-700 text-center md:text-right">
+      <div class="text-sm text-gray-300 text-center md:text-right">
         <p>&copy; 2025 Caramel Apple Co. All rights reserved.</p>
         <div class="flex flex-wrap justify-center md:justify-end gap-4 mt-2">
           <a href="/terms" class="footer-link transition-colors duration-200">Terms of Service</a>

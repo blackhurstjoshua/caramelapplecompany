@@ -6,7 +6,7 @@
   import { cart, cartCount, cartTotal, type CartItem } from '$lib/stores/cart';
   import CTAButton from './CTAButton.svelte';
   
-    let { isDrawerOpen = $bindable(false), isCartDrawerOpen = $bindable(false), children } = $props();
+    let { isDrawerOpen = $bindable(false), isCartDrawerOpen = $bindable(false), children = undefined } = $props();
 
   let isAnimating = $state(false);
   let previousCartCount = 0;

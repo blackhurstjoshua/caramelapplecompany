@@ -1,6 +1,11 @@
 import { supabase } from '$lib/supabase';
-import type { Product } from '$lib/stores/product';
+import { createClient } from '@supabase/supabase-js';
+import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+import { Product } from '$lib/stores/product';
 // ! examine each return type. Possibly come up with generic return type for all these.
+
+// Use raw Supabase client for filtering queries
+const supabaseClient = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
 
 const getAllProducts = async (): Promise<Product[]> => {
   const { data, error } = await supabase.from('products').select('*');
@@ -34,5 +39,17 @@ const deleteProduct = async (id: string) => {
   return data;
 };
 
+const getFeaturedApples = async (): Promise<Product[]> => {
+  const { data, error } = await supabaseClient
+    .from('products')
+    .select('*')
+    .eq('is_active', true)
+    .eq('is_weekly_special', true);
+  if (error) throw error;
+  
+  // Convert to Product instances
+  return data.map(productData => new Product(productData));
+};
+
 // CRUD
-export { createProduct, getAllProducts, updateProduct, deleteProduct };
+export { createProduct, getAllProducts, updateProduct, deleteProduct, getFeaturedApples };

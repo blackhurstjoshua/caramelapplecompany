@@ -6,7 +6,7 @@
 </script>
 
 <div class="min-h-screen bg-cream">
-  <Navigation bind:isDrawerOpen bind:isCartDrawerOpen />
-  
-  <slot />
+  <Navigation bind:isDrawerOpen bind:isCartDrawerOpen>
+    <slot />
+  </Navigation>
 </div> 
