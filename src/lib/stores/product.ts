@@ -3,7 +3,7 @@ interface Apple {
   name: string;
   description: string;
   imagePath: string;
-  isWeeklySpecial: boolean;
+  featured: boolean;
   priceCents: number;
   isActive: boolean;
   createdAt: string;
@@ -17,7 +17,7 @@ export class Product implements Apple {
   name: string;
   description: string;
   imagePath: string;
-  isWeeklySpecial: boolean;
+  featured: boolean;
   priceCents: number;
   isActive: boolean;
   createdAt: string;
@@ -30,7 +30,7 @@ export class Product implements Apple {
     this.name = data.name;
     this.description = data.description;
     this.imagePath = data.imagePath || data.image_path;
-    this.isWeeklySpecial = data.isWeeklySpecial ?? data.is_weekly_special;
+    this.featured = data.featured ?? data.featured;
     this.priceCents = data.priceCents ?? data.price_cents;
     this.isActive = data.isActive ?? data.is_active;
     this.createdAt = data.createdAt || data.created_at;

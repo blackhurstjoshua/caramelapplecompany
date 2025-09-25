@@ -3,7 +3,7 @@
   import CTAButton from './CTAButton.svelte';
   import ProductCard from './ProductCard.svelte';
   
-  $: specialFlavors = $weeklyFlavors.filter(flavor => flavor.isWeeklySpecial);
+  $: specialFlavors = $weeklyFlavors.filter(flavor => flavor.featured);
 </script>
 
 <section class="py-16 lg:py-24 bg-cream">

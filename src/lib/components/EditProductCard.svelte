@@ -13,7 +13,7 @@
   let name = product.name;
   let description = product.description;
   let price = product.toDollars();
-  let isWeeklySpecial = product.isWeeklySpecial;
+  let featured = product.featured;
   let imagePath = product.imagePath || '';
   let imageUrl = '';
   
@@ -55,7 +55,7 @@
       imagePath: imagePath,
       // ! Warning: This is a hack to get the price in cents
       priceCents: Math.round(price * 100), 
-      isWeeklySpecial
+      featured
     });
     
     onSave(updatedProduct);
@@ -143,16 +143,16 @@
       {/if}
     </div>
     
-    <!-- Weekly Special Checkbox -->
+    <!-- Featured Checkbox -->
     <div class="flex items-center">
       <input 
-        id="weeklySpecial"
+        id="featured"
         type="checkbox" 
-        bind:checked={isWeeklySpecial}
+        bind:checked={featured}
         class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
       />
       <label for="weeklySpecial" class="ml-2 block text-sm text-gray-700">
-        Show as Weekly Special
+        Featured on home page?
       </label>
     </div>
     

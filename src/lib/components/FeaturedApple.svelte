@@ -30,7 +30,7 @@
           <span class="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">
             ${product.toDollars()}
           </span>
-          {#if product.isWeeklySpecial}
+          {#if product.featured}
             <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-purple-500 to-pink-500 text-white">
               ⭐ Weekly Special
             </span>

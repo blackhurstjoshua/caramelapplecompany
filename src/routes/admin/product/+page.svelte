@@ -25,7 +25,7 @@
         name: updatedProduct.name,
         description: updatedProduct.description,
         image_path: updatedProduct.imagePath,
-        is_weekly_special: updatedProduct.isWeeklySpecial,
+        featured: updatedProduct.featured,
         price_cents: updatedProduct.priceCents,
         is_active: updatedProduct.isActive
       };
@@ -73,7 +73,7 @@
       name: 'New Product',
       description: 'Product description',
       image_path: '',
-      is_weekly_special: false,
+      featured: false,
       price_cents: 1200, // Default $12.00
       is_active: true,
       created_at: new Date().toISOString(),

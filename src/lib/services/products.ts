@@ -44,7 +44,7 @@ const getFeaturedApples = async (): Promise<Product[]> => {
     .from('products')
     .select('*')
     .eq('is_active', true)
-    .eq('is_weekly_special', true);
+    .eq('featured', true);
   if (error) throw error;
   
   // Convert to Product instances
