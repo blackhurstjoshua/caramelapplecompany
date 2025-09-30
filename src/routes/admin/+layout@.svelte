@@ -1,20 +1,43 @@
 <script lang="ts">
   import '../../app.css';
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import LoginForm from '$lib/components/LoginForm.svelte';
-  import { verifyAdminLogin, setAuthState, getAuthState, clearAuthState } from '$lib/auth';
+  import { verifyAdminLogin, getAuthState, clearAuthState, onAuthStateChange } from '$lib/auth';
+  import type { User } from '@supabase/supabase-js';
   
   let isAuthenticated = false;
-  let currentUser = '';
+  let currentUser: User | null = null;
   let loading = false;
   let errorMessage = '';
   let successMessage = '';
   let sidebarOpen = true;
   
-  onMount(() => {
-    const authState = getAuthState();
-    isAuthenticated = authState.isAuthenticated;
-    currentUser = authState.user || '';
+  let authSubscription: any;
+  
+  onMount(async () => {
+    // Get initial auth state
+    const authState = await getAuthState();
+    isAuthenticated = authState.isAuthenticated && authState.isAdmin;
+    currentUser = authState.user;
+    
+    // Listen for auth state changes
+    const { data: { subscription } } = onAuthStateChange((authState) => {
+      isAuthenticated = authState.isAuthenticated && authState.isAdmin;
+      currentUser = authState.user;
+      
+      // Clear messages when auth state changes
+      if (!isAuthenticated) {
+        successMessage = '';
+        errorMessage = '';
+      }
+    });
+    
+    authSubscription = subscription;
+  });
+  
+  // Cleanup subscription on component destroy
+  onDestroy(() => {
+    authSubscription?.unsubscribe();
   });
   
   async function handleLogin(data: { email: string; password: string }) {
@@ -27,9 +50,8 @@
       
       if (result.success && result.user) {
         successMessage = result.message;
-        setAuthState(result.user);
-        isAuthenticated = true;
-        currentUser = result.user;
+        // Auth state will be updated via onAuthStateChange listener
+        // No need to manually set state here
       } else {
         errorMessage = result.message;
       }
@@ -51,10 +73,9 @@
     window.open(mailtoLink, '_blank');
   }
   
-  function handleLogout() {
-    clearAuthState();
-    isAuthenticated = false;
-    currentUser = '';
+  async function handleLogout() {
+    await clearAuthState();
+    // Auth state will be updated via onAuthStateChange listener
     successMessage = '';
     errorMessage = '';
   }
@@ -148,7 +169,7 @@
       <div class="absolute bottom-0 left-0 right-0 p-6 border-t border-gray-200">
         <div class="text-center">
           <p class="text-sm text-gray-500">Logged in as</p>
-          <p class="text-base font-medium text-gray-900">{currentUser}</p>
+          <p class="text-base font-medium text-gray-900">{currentUser?.email || 'Admin User'}</p>
           <button
             on:click={handleLogout}
             class="mt-3 w-full px-4 py-2 text-sm font-medium text-gray-600 hover:text-apple-medium hover:bg-gray-50 rounded-lg transition-colors duration-200"
@@ -190,7 +211,7 @@
                 <h1 class="text-2xl font-bold text-gray-900" style="font-family: 'Oswald', sans-serif; font-weight: 600;">
                   Admin Dashboard
                 </h1>
-                <p class="text-sm text-gray-600">Welcome back, {currentUser}!</p>
+                <p class="text-sm text-gray-600">Welcome back, {currentUser?.email || 'Admin User'}!</p>
               </div>
             </div>
             <button

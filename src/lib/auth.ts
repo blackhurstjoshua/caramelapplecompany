@@ -1,50 +1,63 @@
-import adminCredentials from './admin-credentials.json';
-
-interface AdminUser {
-  email: string;
-  password: string;
-}
+import { supabase } from './supabase';
+import type { User } from '@supabase/supabase-js';
 
 interface AuthResult {
   success: boolean;
   message: string;
-  user?: string;
+  user?: User;
 }
 
-// Verify admin login credentials with simple string comparison
+interface AuthState {
+  user: User | null;
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+}
+
+// Verify admin login credentials using Supabase Auth
 export async function verifyAdminLogin(email: string, password: string): Promise<AuthResult> {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
   try {
-    // Find user by email
-    const user = Object.entries(adminCredentials).find(([key, userData]) => 
-      userData.email.toLowerCase() === email.toLowerCase()
-    );
-    
-    if (!user) {
+    // Sign in with Supabase Auth
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
       return {
         success: false,
-        message: 'Invalid email or password'
+        message: error.message === 'Invalid login credentials' 
+          ? 'Invalid email or password' 
+          : error.message
       };
     }
-    
-    const [username, userData] = user;
-    
-    // Simple string comparison
-    if (password === userData.password) {
-      return {
-        success: true,
-        message: 'Login successful',
-        user: username
-      };
-    } else {
+
+    if (!data.user) {
       return {
         success: false,
-        message: 'Invalid email or password'
+        message: 'Authentication failed'
       };
     }
+
+    // Check if user is admin by checking user metadata
+    const userRole = data.user.user_metadata?.role;
+
+    if (userRole !== 'admin') {
+      // Sign out the user since they're not admin
+      await supabase.auth.signOut();
+      return {
+        success: false,
+        message: 'Access denied: Admin privileges required'
+      };
+    }
+
+    return {
+      success: true,
+      message: 'Login successful',
+      user: data.user
+    };
+
   } catch (error) {
+    console.error('Login error:', error);
     return {
       success: false,
       message: 'An error occurred during login'
@@ -52,38 +65,55 @@ export async function verifyAdminLogin(email: string, password: string): Promise
   }
 }
 
-// Store auth state (simple client-side storage for demo)
-export function setAuthState(user: string) {
-  if (typeof window !== 'undefined') {
-    sessionStorage.setItem('admin_user', user);
-    sessionStorage.setItem('admin_login_time', Date.now().toString());
-  }
-}
-
-export function getAuthState(): { user: string | null; isAuthenticated: boolean } {
-  if (typeof window === 'undefined') {
-    return { user: null, isAuthenticated: false };
-  }
-  
-  const user = sessionStorage.getItem('admin_user');
-  const loginTime = sessionStorage.getItem('admin_login_time');
-  
-  // Check if login is still valid (24 hours)
-  if (user && loginTime) {
-    const elapsed = Date.now() - parseInt(loginTime);
-    const twentyFourHours = 24 * 60 * 60 * 1000;
+// Get current auth state from Supabase
+export async function getAuthState(): Promise<AuthState> {
+  try {
+    // Get current session
+    const { data: { session }, error } = await supabase.auth.getSession();
     
-    if (elapsed < twentyFourHours) {
-      return { user, isAuthenticated: true };
+    if (error || !session?.user) {
+      return { user: null, isAuthenticated: false, isAdmin: false };
     }
+
+    // Check if user is admin via user metadata
+    const isAdmin = session.user.user_metadata?.role === 'admin';
+
+    return {
+      user: session.user,
+      isAuthenticated: true,
+      isAdmin
+    };
+
+  } catch (error) {
+    console.error('Auth state error:', error);
+    return { user: null, isAuthenticated: false, isAdmin: false };
   }
-  
-  return { user: null, isAuthenticated: false };
 }
 
-export function clearAuthState() {
-  if (typeof window !== 'undefined') {
-    sessionStorage.removeItem('admin_user');
-    sessionStorage.removeItem('admin_login_time');
+// Sign out user
+export async function clearAuthState(): Promise<void> {
+  try {
+    await supabase.auth.signOut();
+  } catch (error) {
+    console.error('Sign out error:', error);
   }
-} 
+}
+
+// Listen to auth state changes
+export function onAuthStateChange(callback: (authState: AuthState) => void) {
+  return supabase.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_OUT' || !session?.user) {
+      callback({ user: null, isAuthenticated: false, isAdmin: false });
+      return;
+    }
+
+    // Check admin status via user metadata
+    const isAdmin = session.user.user_metadata?.role === 'admin';
+
+    callback({
+      user: session.user,
+      isAuthenticated: true,
+      isAdmin
+    });
+  });
+}
