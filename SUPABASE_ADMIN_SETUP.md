@@ -100,6 +100,16 @@ Note: We're using user metadata for admin roles, so no profiles table is needed.
 
 ## Troubleshooting
 
+### "Email not confirmed" 
+- This happens because Supabase requires email verification by default
+- **Fix via SQL**: Manually confirm emails for test accounts:
+  ```sql
+  UPDATE auth.users 
+  SET email_confirmed_at = NOW(), confirmed_at = NOW()
+  WHERE email IN ('admin@caramelapple.com', 'manager@caramelapple.com');
+  ```
+- **Future prevention**: The script now includes `email_confirm: true` to bypass this
+
 ### "Access denied: Admin privileges required"
 - Make sure you've set the user_metadata with `{"role": "admin"}` for admin users
 - Check the user metadata via: `SELECT raw_user_meta_data FROM auth.users WHERE email = 'admin@caramelapple.com';`

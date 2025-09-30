@@ -35,6 +35,7 @@ async function createAdminUsers() {
     const { data: adminUser, error: adminError } = await supabase.auth.admin.createUser({
       email: 'admin@caramelapple.com',
       password: 'test',
+      email_confirm: true,  // ← Bypass email confirmation
       user_metadata: { role: 'admin' }
     })
 
@@ -52,6 +53,7 @@ async function createAdminUsers() {
     const { data: managerUser, error: managerError } = await supabase.auth.admin.createUser({
       email: 'manager@caramelapple.com',
       password: 'hello',
+      email_confirm: true,  // ← Bypass email confirmation
       user_metadata: { role: 'admin' }
     })
 
