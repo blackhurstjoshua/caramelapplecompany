@@ -25,7 +25,7 @@ export async function uploadImage(file: File, folder: string = ''): Promise<Imag
     if (!allowedTypes.includes(file.type)) {
       return {
         success: false,
-        error: 'Please upload a valid image file (JPEG, PNG, WebP, or GIF)'
+        error: 'Please upload a valid image file (JPEG, PNG, WebP, GIF, or HEIC)'
       };
     }
 

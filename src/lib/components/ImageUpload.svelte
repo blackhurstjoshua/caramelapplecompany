@@ -66,6 +66,7 @@
       reader.readAsDataURL(file);
     }
 
+
     // Validate file size
     if (file.size > maxSizeMB * 1024 * 1024) {
       uploadResult = {

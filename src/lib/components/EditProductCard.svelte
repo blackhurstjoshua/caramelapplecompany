@@ -37,9 +37,9 @@
     }
   }
 
-  function handleSave() {
+  async function handleSave() {
     // Check authentication before saving
-    const authState = getAuthState();
+    const authState = await getAuthState();
     if (!authState.isAuthenticated) {
       alert('You must be authenticated to save changes');
       onCancel(); // Exit edit mode

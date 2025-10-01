@@ -11,14 +11,14 @@ CREATE POLICY "Anyone can view images" ON storage.objects
 FOR SELECT USING (bucket_id = 'images');
 
 CREATE POLICY "Authenticated users can upload images" ON storage.objects 
-FOR INSERT WITH CHECK (bucket_id = 'images' AND auth.role() = 'authenticated');
+FOR INSERT WITH CHECK (bucket_id = 'images' AND auth.role() = 'authenticated' AND (auth.jwt() ->> 'user_metadata' ->> 'role') = 'admin');
 
-CREATE POLICY "Only owner can update their images" ON storage.objects 
-FOR UPDATE USING (bucket_id = 'images' AND auth.uid() = owner)
-WITH CHECK (bucket_id = 'images' AND auth.uid() = owner);
+CREATE POLICY "Admins can update images" ON storage.objects 
+FOR UPDATE USING (bucket_id = 'images' AND (auth.jwt() ->> 'user_metadata' ->> 'role') = 'admin')
+WITH CHECK (bucket_id = 'images' AND (auth.jwt() ->> 'user_metadata' ->> 'role') = 'admin');
 
-CREATE POLICY "Only owner can delete their images" ON storage.objects 
-FOR DELETE USING (bucket_id = 'images' AND auth.uid() = owner);
+CREATE POLICY "Admins can delete images" ON storage.objects 
+FOR DELETE USING (bucket_id = 'images' AND (auth.jwt() ->> 'user_metadata' ->> 'role') = 'admin');
 
 -- Create a view for easier image URL generation
 CREATE OR REPLACE VIEW public.image_urls AS
