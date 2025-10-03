@@ -11,6 +11,7 @@ CREATE TABLE orders (
   payment_method VARCHAR(20) NOT NULL DEFAULT 'pickup' CHECK (payment_method IN ('pickup', 'stripe')),
   address JSONB, -- Delivery address as JSON (null for pickup)
   customizations TEXT, -- Custom instructions/modifications
+  delivery_specifications TEXT, -- Delivery address, time, special instructions (legacy - use address field)
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
