@@ -3,6 +3,7 @@ CREATE TABLE orders (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
   order_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  delivery_date DATE NOT NULL, -- Date when order should be ready for pickup/delivery
   status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'cancelled')),
   total_cents INTEGER NOT NULL, -- Total in cents (pennies)
   subtotal_cents INTEGER NOT NULL DEFAULT 0, -- Subtotal in cents (before delivery fee)
@@ -10,7 +11,7 @@ CREATE TABLE orders (
   delivery_fee_cents INTEGER NOT NULL DEFAULT 0, -- Delivery fee in cents
   payment_method VARCHAR(20) NOT NULL DEFAULT 'pickup' CHECK (payment_method IN ('pickup', 'stripe')),
   address JSONB, -- Delivery address as JSON (null for pickup)
-  customizations TEXT, -- Custom instructions/modifications
+  customizations TEXT, -- Custom instructions/modifications from customer
   delivery_specifications TEXT, -- Delivery address, time, special instructions (legacy - use address field)
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -20,7 +21,8 @@ CREATE TABLE orders (
 -- Note: customer_id values will need to be retrieved from customers table after insertion
 INSERT INTO orders (
   customer_id, 
-  order_date, 
+  order_date,
+  delivery_date,
   status, 
   total_cents, 
   subtotal_cents,
@@ -33,7 +35,8 @@ INSERT INTO orders (
 ) VALUES
   (
     (SELECT id FROM customers WHERE email = 'sarah.johnson@email.com'), 
-    '2024-11-25T14:30:00Z', 
+    '2024-11-25T14:30:00Z',
+    '2024-11-27', -- Delivery date: 2 days after order
     'completed', 
     2400, -- $24.00 total
     1400, -- $14.00 subtotal
@@ -46,7 +49,8 @@ INSERT INTO orders (
   ),
   (
     (SELECT id FROM customers WHERE email = 'mike.chen@email.com'), 
-    '2024-11-28T10:15:00Z', 
+    '2024-11-28T10:15:00Z',
+    '2024-11-30', -- Delivery date: 2 days after order
     'processing', 
     2200, -- $22.00 total
     1200, -- $12.00 subtotal
@@ -59,7 +63,8 @@ INSERT INTO orders (
   ),
   (
     (SELECT id FROM customers WHERE email = 'emily.rodriguez@email.com'), 
-    '2024-11-30T16:45:00Z', 
+    '2024-11-30T16:45:00Z',
+    '2024-12-02', -- Pickup date: 2 days after order
     'pending', 
     1800, -- $18.00 total
     1800, -- $18.00 subtotal (no delivery fee)

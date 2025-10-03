@@ -26,6 +26,7 @@
   let zip = '';
 
   let selectedDate = ''; // Will be populated by calendar component
+  let customizations = ''; // Optional custom instructions
 
   let paymentMethod: 'pickup' | 'stripe' = 'pickup';
 
@@ -111,75 +112,91 @@
     }
   }
 
+  // Error state for better UX
+  let isSubmitting = false;
+  let submitError = '';
+
   async function submitOrder() {
     const error = validateCurrentStep();
     if (error) {
-      alert(error);
+      submitError = error;
       return;
     }
 
-    const payload = {
+    if (!selectedDate) {
+      submitError = 'Please select a completion date';
+      return;
+    }
+
+    // Clear any previous errors
+    submitError = '';
+    isSubmitting = true;
+
+    // Create clean checkout request payload
+    const checkoutRequest = {
       customer: {
-        name,
-        email: contactMethod === 'email' ? email : null,
-        phone: contactMethod === 'phone' ? phone : null
+        name: name.trim(),
+        email: contactMethod === 'email' ? email.trim() : undefined,
+        phone: contactMethod === 'phone' ? phone.trim() : undefined
       },
-      retrieval: {
-        method: retrievalMethod,
-        address:
-          retrievalMethod === 'delivery'
-            ? { addressLine1, addressLine2, city, state, zip }
-            : null,
-        deliveryFee
+      order: {
+        delivery_date: selectedDate,
+        retrieval_method: retrievalMethod,
+        payment_method: paymentMethod,
+        address: retrievalMethod === 'delivery' ? {
+          addressLine1: addressLine1.trim(),
+          addressLine2: addressLine2.trim() || undefined,
+          city: city.trim(),
+          state: state.trim(),
+          zip: zip.trim()
+        } : undefined,
+        customizations: customizations.trim() || undefined
       },
-      payment: {
-        method: paymentMethod
-      },
-      cart: $cart.map((item: CartItem) => ({
-        id: item.id,
-        productId: item.product.id,
-        name: item.product.name,
-        unitPrice: item.product.toDollars(),
+      items: $cart.map((item: CartItem) => ({
+        product_id: item.product.id,
         quantity: item.quantity
-      })),
-      totals: { subtotal, total }
+      }))
     };
 
-    if (paymentMethod === 'pickup') {
-      // Submit to local endpoint to create order and customer, then redirect
-      const res = await fetch('/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (res.ok) {
-        // On success, clear cart and go to thank-you
-        cart.clear();
-        goto('/checkout/success');
-      } else {
-        const msg = await res.text();
-        alert(msg || 'Failed to submit order');
-      }
-    } else {
-      // Stripe flow placeholder
-      // TODO: Create Checkout Session with Stripe and redirect to Stripe Checkout
-      // Pass payload to server to create session; use address for shipping if provided
-      const res = await fetch('/checkout?stripe=1', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (res.ok) {
-        const { checkoutUrl } = await res.json();
-        if (checkoutUrl) {
-          window.location.href = checkoutUrl;
+    try {
+      if (paymentMethod === 'pickup') {
+        // Submit to local endpoint to create order and customer
+        const response = await fetch('/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(checkoutRequest)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          // On success, clear cart and go to success page
+          cart.clear();
+          goto('/checkout/success');
         } else {
-          alert('Stripe is not configured yet.');
+          submitError = result.error || 'Failed to submit order';
         }
       } else {
-        const msg = await res.text();
-        alert(msg || 'Failed to initialize Stripe checkout');
+        // Stripe flow placeholder
+        const response = await fetch('/checkout?stripe=1', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(checkoutRequest)
+        });
+        
+        const result = await response.json();
+        
+        if (result.checkoutUrl) {
+          window.location.href = result.checkoutUrl;
+        } else {
+          submitError = 'Stripe is not configured yet.';
+        }
       }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      submitError = 'Network error. Please check your connection and try again.';
+    } finally {
+      isSubmitting = false;
     }
   }
 </script>
@@ -333,6 +350,21 @@
               </div>
             {/if}
           </div>
+
+          <!-- Custom Instructions -->
+          <div class="form-control">
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="customizations">Special Instructions (optional)</label>
+            <textarea 
+              id="customizations" 
+              class="textarea textarea-bordered bg-gray-50 border-gray-300" 
+              bind:value={customizations} 
+              placeholder="Any special requests or modifications? (e.g., extra caramel, no nuts, delivery instructions)"
+              rows="3"
+            ></textarea>
+            <div class="text-xs text-gray-500 mt-1">
+              💡 Let us know about allergies, special requests, or delivery preferences
+            </div>
+          </div>
         </div>
 
       {:else if currentStep === 3}
@@ -346,7 +378,7 @@
             </p>
             {#if selectedDate}
               <p class="text-sm text-green-600 font-medium">
-                Selected: {new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                Selected: {new Date(selectedDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
               </p>
             {/if}
           </div>
@@ -410,13 +442,23 @@
         </div>
       {/if}
 
+      <!-- Error Display -->
+      {#if submitError}
+        <div class="alert alert-error mt-6">
+          <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>{submitError}</span>
+        </div>
+      {/if}
+
       <!-- Navigation buttons -->
       <div class="flex justify-between mt-8 pt-6 border-t">
         <button 
           class="btn btn-outline" 
-          class:btn-disabled={currentStep === 1}
+          class:btn-disabled={currentStep === 1 || isSubmitting}
           on:click={prevStep}
-          disabled={currentStep === 1}
+          disabled={currentStep === 1 || isSubmitting}
         >
           Previous
         </button>
@@ -425,17 +467,22 @@
           <button 
             class="btn bg-black text-white" 
             on:click={handleNext}
-            disabled={$cart.length === 0}
+            disabled={$cart.length === 0 || isSubmitting}
           >
             Next
           </button>
         {:else}
           <button 
             class="btn bg-black text-white" 
+            class:loading={isSubmitting}
             on:click={submitOrder}
-            disabled={$cart.length === 0}
+            disabled={$cart.length === 0 || isSubmitting}
           >
-            {paymentMethod === 'pickup' ? 'Place Order' : 'Pay with Stripe'}
+            {#if isSubmitting}
+              Processing...
+            {:else}
+              {paymentMethod === 'pickup' ? 'Place Order' : 'Pay with Stripe'}
+            {/if}
           </button>
         {/if}
       </div>

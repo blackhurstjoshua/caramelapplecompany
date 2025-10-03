@@ -1,33 +1,55 @@
 import type { RequestEvent } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
-import { createOrder, type CreateOrderRequest } from '$lib/services/orders';
+import { CheckoutService, type CheckoutRequest } from '$lib/services/checkout';
 
 export const POST = async ({ request, url }: RequestEvent) => {
   const isStripe = url.searchParams.has('stripe');
-  const body = await request.json().catch(() => null);
-
-  if (!body || !body.customer || !Array.isArray(body.cart)) {
-    return new Response('Invalid payload', { status: 400 });
-  }
-
-  if (isStripe) {
-    // TODO: Create Stripe Checkout Session and return URL
-    return json({ checkoutUrl: null });
-  }
-
-  const orderRequest = body as CreateOrderRequest;
-
+  
   try {
-    const result = await createOrder(orderRequest);
+    const body = await request.json();
+    
+    if (!body) {
+      return json({ success: false, error: 'Invalid request body' }, { status: 400 });
+    }
+
+    if (isStripe) {
+      // TODO: Create Stripe Checkout Session and return URL
+      return json({ checkoutUrl: null });
+    }
+
+    // Validate required fields for checkout request
+    if (!body.customer || !body.order || !Array.isArray(body.items)) {
+      return json({ 
+        success: false, 
+        error: 'Invalid payload structure. Expected customer, order, and items fields.' 
+      }, { status: 400 });
+    }
+
+    const checkoutRequest = body as CheckoutRequest;
+    const result = await CheckoutService.processCheckout(checkoutRequest);
     
     if (result.success) {
-      return json({ ok: true, orderId: result.orderId });
+      return json({ 
+        success: true, 
+        orderId: result.orderId 
+      });
     } else {
-      return new Response(result.error || 'Failed to save order', { status: 500 });
+      // Return appropriate status based on error type
+      const status = result.errorType === 'validation' ? 400 : 500;
+      return json({ 
+        success: false, 
+        error: result.error,
+        errorType: result.errorType 
+      }, { status });
     }
-  } catch (e) {
-    console.error('Checkout error', e);
-    return new Response('Failed to save order', { status: 500 });
+    
+  } catch (error) {
+    console.error('Checkout server error:', error);
+    return json({ 
+      success: false, 
+      error: 'An unexpected error occurred while processing your order',
+      errorType: 'unknown'
+    }, { status: 500 });
   }
 };
 
