@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+import { CustomerService } from './customers';
+import { OrderService, type CreateOrderItemData } from './orders';
 
 // Use raw Supabase client for this service
 const supabaseClient = createClient(
@@ -80,13 +82,30 @@ export class CheckoutService {
       const totals = this.calculateTotals(itemsWithPrices, request.order.retrieval_method);
 
       // Step 4: Find or create customer
-      const customerId = await this.upsertCustomer(request.customer);
+      const customerId = await CustomerService.upsertCustomer(request.customer);
 
       // Step 5: Create order
-      const orderId = await this.createOrder(customerId, request.order, totals);
+      const orderId = await OrderService.createOrder({
+        customer_id: customerId,
+        delivery_date: request.order.delivery_date,
+        total_cents: totals.total_cents,
+        subtotal_cents: totals.subtotal_cents,
+        retrieval_method: request.order.retrieval_method,
+        delivery_fee_cents: totals.delivery_fee_cents,
+        payment_method: request.order.payment_method,
+        address: request.order.address,
+        customizations: request.order.customizations
+      });
 
       // Step 6: Create order items
-      await this.createOrderItems(orderId, itemsWithPrices);
+      const orderItems: CreateOrderItemData[] = itemsWithPrices.map(item => ({
+        order_id: orderId,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        unit_price_cents: item.price_cents
+      }));
+      
+      await OrderService.createOrderItems(orderItems);
 
       return {
         success: true,
@@ -183,106 +202,4 @@ export class CheckoutService {
     };
   }
 
-  /**
-   * Find or create customer
-   */
-  private static async upsertCustomer(customer: CheckoutCustomer): Promise<string> {
-    let customerId: string | null = null;
-
-    // Try to find existing customer by email
-    if (customer.email) {
-      const { data: existingByEmail, error: emailErr } = await supabaseClient
-        .from('customers')
-        .select('id')
-        .eq('email', customer.email)
-        .maybeSingle();
-      
-      if (emailErr) throw emailErr;
-      if (existingByEmail) customerId = existingByEmail.id;
-    }
-
-    // Try to find existing customer by phone if not found by email
-    if (!customerId && customer.phone) {
-      const { data: existingByPhone, error: phoneErr } = await supabaseClient
-        .from('customers')
-        .select('id')
-        .eq('phone', customer.phone)
-        .maybeSingle();
-      
-      if (phoneErr) throw phoneErr;
-      if (existingByPhone) customerId = existingByPhone.id;
-    }
-
-    // Create new customer if not found
-    if (!customerId) {
-      const { data: inserted, error: insertErr } = await supabaseClient
-        .from('customers')
-        .insert({
-          name: customer.name,
-          email: customer.email || null,
-          phone: customer.phone || null
-        })
-        .select('id')
-        .single();
-      
-      if (insertErr) throw insertErr;
-      if (!inserted) throw new Error('Failed to create customer');
-      customerId = inserted.id;
-    }
-
-    if (!customerId) throw new Error('Failed to get customer ID');
-    return customerId;
-  }
-
-  /**
-   * Create order record
-   */
-  private static async createOrder(
-    customerId: string, 
-    order: CheckoutOrder, 
-    totals: { subtotal_cents: number; delivery_fee_cents: number; total_cents: number }
-  ): Promise<string> {
-    const { data: orderRecord, error: orderErr } = await supabaseClient
-      .from('orders')
-      .insert({
-        customer_id: customerId,
-        delivery_date: order.delivery_date,
-        status: 'pending',
-        total_cents: totals.total_cents,
-        subtotal_cents: totals.subtotal_cents,
-        retrieval_method: order.retrieval_method,
-        delivery_fee_cents: totals.delivery_fee_cents,
-        payment_method: order.payment_method,
-        address: order.address || null,
-        customizations: order.customizations || null
-      })
-      .select('id')
-      .single();
-
-    if (orderErr) throw orderErr;
-    if (!orderRecord) throw new Error('Failed to create order');
-    
-    return orderRecord.id;
-  }
-
-  /**
-   * Create order items
-   */
-  private static async createOrderItems(
-    orderId: string, 
-    items: Array<CheckoutItem & { price_cents: number }>
-  ): Promise<void> {
-    const orderItems = items.map((item) => ({
-      order_id: orderId,
-      product_id: item.product_id,
-      unit_price_cents: item.price_cents,
-      quantity: item.quantity
-    }));
-
-    const { error: itemsErr } = await supabaseClient
-      .from('order_items')
-      .insert(orderItems);
-
-    if (itemsErr) throw itemsErr;
-  }
 }

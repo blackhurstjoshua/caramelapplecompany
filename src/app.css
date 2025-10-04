@@ -19,7 +19,23 @@
   /* Set Roboto as the default font for the entire app */
   body {
     font-family: var(--font-family-body);
-    color: #1f2937; /* gray-800 - dark text for good readability */
+    color: #1f2937 !important; /* gray-800 - dark text for good readability */
+  }
+  
+  /* Ensure all text elements default to black/dark gray */
+  * {
+    color: inherit;
+  }
+  
+  /* Override DaisyUI table defaults */
+  .table th,
+  .table td {
+    color: #1f2937 !important;
+  }
+  
+  /* Override any light text defaults */
+  p, span, div, td, th, label, input, textarea, select {
+    color: #1f2937;
   }
 }
 

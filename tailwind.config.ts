@@ -19,4 +19,19 @@ export default {
     },
   },
   plugins: [require('daisyui')],
+  daisyui: {
+    themes: [
+      {
+        light: {
+          ...require("daisyui/src/theming/themes")["light"],
+          // Override default text colors to be black
+          "base-content": "#1f2937", // gray-800 - main text color
+          "neutral-content": "#1f2937", // gray-800 - neutral text color
+        },
+      },
+    ],
+    base: true,
+    styled: true,
+    utils: true,
+  },
 }

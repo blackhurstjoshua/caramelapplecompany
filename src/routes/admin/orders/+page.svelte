@@ -1,63 +1,66 @@
 <script lang="ts">
   import DataTable from '$lib/components/DataTable.svelte';
-  import type { TableColumn, Order } from '$lib/types';
+  import type { TableColumn } from '$lib/types';
+  import type { OrderWithCustomer } from '$lib/services/orders';
+  import type { PageData } from './$types';
   import { goto } from '$app/navigation';
+  import { formatPrice } from '$lib/utils/currency';
   
-  // Sample orders data - replace with real data from your API/database
-  const sampleOrders: Order[] = [
-    {
-      id: 'ORD-001',
-      customerName: 'John Doe',
-      customerEmail: 'john@example.com',
-      orderDate: '2024-01-15',
-      status: 'completed',
-      total: 45.99,
-      items: ['Granny Smith Apples', 'Honeycrisp Apples']
-    },
-    {
-      id: 'ORD-002',
-      customerName: 'Sarah Smith',
-      customerEmail: 'sarah@example.com',
-      orderDate: '2024-01-16',
-      status: 'processing',
-      total: 32.50,
-      items: ['Red Delicious Apples']
-    },
-    {
-      id: 'ORD-003',
-      customerName: 'Mike Johnson',
-      customerEmail: 'mike@example.com',
-      orderDate: '2024-01-17',
-      status: 'pending',
-      total: 78.25,
-      items: ['Fuji Apples', 'Gala Apples', 'Apple Pie']
-    }
-  ];
+  export let data: PageData;
   
   const columns: TableColumn[] = [
-    { key: 'id', label: 'Order ID', width: '120px' },
-    { key: 'customerName', label: 'Customer' },
-    { key: 'customerEmail', label: 'Email' },
-    { key: 'orderDate', label: 'Date', width: '120px' },
+    { key: 'customer.name', label: 'Customer' },
+    { key: 'customer.email', label: 'Email' },
+    { key: 'order_date', label: 'Order Date', width: '120px' },
+    { key: 'delivery_date', label: 'Due Date', width: '120px' },
+    { key: 'retrieval_method', label: 'Method', width: '100px' },
     { key: 'status', label: 'Status', width: '100px' },
-    { key: 'total', label: 'Total', width: '100px' }
+    { key: 'total_cents', label: 'Total', width: '100px' }
   ];
   
-  function handleOrderClick(order: Order) {
+  function handleOrderClick(order: OrderWithCustomer) {
     // Navigate to order details page
     goto(`/admin/orders/${order.id}`);
   }
   
-  function formatCurrency(value: number): string {
-    return `$${value.toFixed(2)}`;
+  function formatDate(dateString: string): string {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   }
   
-  // Process data to format currency
-  const processedOrders = sampleOrders.map(order => ({
+  function capitalizeFirst(str: string): string {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+  
+  function getStatusBadgeClass(status: string): string {
+    switch (status.toLowerCase()) {
+      case 'completed': return 'badge-success';
+      case 'processing': return 'badge-warning';
+      case 'pending': return 'badge-info';
+      case 'cancelled': return 'badge-error';
+      default: return 'badge-ghost';
+    }
+  }
+  
+  // Process data to format dates, currency, and status
+  $: processedOrders = (data.orders || []).map(order => ({
     ...order,
-    total: formatCurrency(order.total),
-    status: order.status.charAt(0).toUpperCase() + order.status.slice(1)
+    order_date: formatDate(order.order_date),
+    delivery_date: formatDate(order.delivery_date),
+    retrieval_method: capitalizeFirst(order.retrieval_method),
+    status: capitalizeFirst(order.status),
+    total_cents: formatPrice(order.total_cents),
+    customer: {
+      ...order.customer,
+      email: order.customer.email || 'No email'
+    }
   }));
+  
+  $: loading = !data.orders;
+  $: hasError = !!data.error;
 </script>
 
 <div class="p-6">
@@ -66,14 +69,31 @@
     <p class="text-gray-600 mt-2">View and manage customer orders</p>
   </div>
   
+  {#if hasError}
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+      <div class="flex items-center">
+        <svg class="w-5 h-5 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+        </svg>
+        <span class="text-red-800">{data.error}</span>
+      </div>
+    </div>
+  {/if}
+
   <div class="bg-white rounded-lg shadow-sm border border-gray-200">
     <div class="p-4 border-b border-gray-200">
-      <h2 class="text-xl font-semibold text-gray-800">Recent Orders</h2>
+      <div class="flex justify-between items-center">
+        <h2 class="text-xl font-semibold text-gray-800">All Orders</h2>
+        {#if !loading && !hasError}
+          <span class="text-sm text-gray-500">{processedOrders.length} orders</span>
+        {/if}
+      </div>
     </div>
     
     <DataTable 
       data={processedOrders}
       {columns}
+      {loading}
       onRowClick={handleOrderClick}
       emptyMessage="No orders found"
     />

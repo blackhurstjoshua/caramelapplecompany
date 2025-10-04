@@ -1,32 +1,14 @@
 <script lang="ts">
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
+  import type { PageData } from './$types';
+  import { formatPrice, centsToDollars } from '$lib/utils/currency';
   
-  $: customerId = $page.params.id;
+  let { data }: { data: PageData } = $props();
   
-  // In a real app, you would fetch the customer data based on the ID
-  // For now, using mock data
-  const mockCustomer = {
-    id: customerId,
-    name: 'John Doe',
-    email: 'john@example.com',
-    phone: '(555) 123-4567',
-    joinDate: '2023-12-01',
-    totalOrders: 15,
-    totalSpent: 456.78,
-    address: {
-      street: '123 Main St',
-      city: 'Anytown',
-      state: 'ST',
-      zip: '12345'
-    },
-    recentOrders: [
-      { id: 'ORD-001', date: '2024-01-15', total: 45.99, status: 'completed' },
-      { id: 'ORD-004', date: '2024-01-10', total: 32.50, status: 'completed' },
-      { id: 'ORD-007', date: '2024-01-05', total: 28.75, status: 'completed' }
-    ],
-    notes: 'Regular customer, prefers organic apples'
-  };
+  let customerId = $derived($page.params.id);
+  let customer = $derived(data.customer);
+  let orders = $derived(data.orders || []);
   
   function goBack() {
     goto('/admin/customers');
@@ -34,6 +16,28 @@
   
   function viewOrder(orderId: string) {
     goto(`/admin/orders/${orderId}`);
+  }
+  
+  function formatDate(dateString: string): string {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  }
+  
+  function getStatusBadgeClass(status: string): string {
+    switch (status.toLowerCase()) {
+      case 'completed': return 'badge-success';
+      case 'processing': return 'badge-warning';
+      case 'pending': return 'badge-info';
+      case 'cancelled': return 'badge-error';
+      default: return 'badge-ghost';
+    }
+  }
+  
+  function capitalizeFirst(str: string): string {
+    return str.charAt(0).toUpperCase() + str.slice(1);
   }
 </script>
 
@@ -46,103 +50,111 @@
       ← Back to Customers
     </button>
     <h1 class="text-3xl font-bold text-gray-800">Customer Details</h1>
-    <p class="text-gray-600 mt-2">Customer #{customerId}</p>
+    <p class="text-gray-600 mt-2">{customer ? customer.name : 'Loading...'}</p>
   </div>
   
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <!-- Customer Information -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <h2 class="text-xl font-semibold text-gray-800 mb-4">Customer Information</h2>
-      <div class="space-y-3">
-        <div>
-          <span class="text-sm font-medium text-gray-500">Name</span>
-          <p class="text-gray-900">{mockCustomer.name}</p>
-        </div>
-        <div>
-          <span class="text-sm font-medium text-gray-500">Email</span>
-          <p class="text-gray-900">{mockCustomer.email}</p>
-        </div>
-        <div>
-          <span class="text-sm font-medium text-gray-500">Phone</span>
-          <p class="text-gray-900">{mockCustomer.phone}</p>
-        </div>
-        <div>
-          <span class="text-sm font-medium text-gray-500">Join Date</span>
-          <p class="text-gray-900">{new Date(mockCustomer.joinDate).toLocaleDateString()}</p>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Statistics -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <h2 class="text-xl font-semibold text-gray-800 mb-4">Statistics</h2>
-      <div class="space-y-3">
-        <div>
-          <span class="text-sm font-medium text-gray-500">Total Orders</span>
-          <p class="text-gray-900 text-2xl font-bold">{mockCustomer.totalOrders}</p>
-        </div>
-        <div>
-          <span class="text-sm font-medium text-gray-500">Total Spent</span>
-          <p class="text-gray-900 text-2xl font-bold">${mockCustomer.totalSpent.toFixed(2)}</p>
-        </div>
-        <div>
-          <span class="text-sm font-medium text-gray-500">Average Order</span>
-          <p class="text-gray-900 text-lg">${(mockCustomer.totalSpent / mockCustomer.totalOrders).toFixed(2)}</p>
+  {#if customer}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Customer Information -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Customer Information</h2>
+        <div class="space-y-3">
+          <div>
+            <span class="text-sm font-medium text-gray-500">Name</span>
+            <p class="text-gray-900">{customer.name}</p>
+          </div>
+          <div>
+            <span class="text-sm font-medium text-gray-500">Email</span>
+            <p class="text-gray-900">{customer.email || 'No email provided'}</p>
+          </div>
+          <div>
+            <span class="text-sm font-medium text-gray-500">Phone</span>
+            <p class="text-gray-900">{customer.phone || 'No phone provided'}</p>
+          </div>
+          <div>
+            <span class="text-sm font-medium text-gray-500">Join Date</span>
+            <p class="text-gray-900">{formatDate(customer.join_date)}</p>
+          </div>
         </div>
       </div>
-    </div>
-    
-    <!-- Address -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <h2 class="text-xl font-semibold text-gray-800 mb-4">Address</h2>
-      <div class="space-y-1">
-        <p class="text-gray-900">{mockCustomer.address.street}</p>
-        <p class="text-gray-900">
-          {mockCustomer.address.city}, {mockCustomer.address.state} {mockCustomer.address.zip}
-        </p>
+      
+      <!-- Statistics -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Statistics</h2>
+        <div class="space-y-3">
+          <div>
+            <span class="text-sm font-medium text-gray-500">Total Orders</span>
+            <p class="text-gray-900 text-2xl font-bold">{customer.total_orders}</p>
+          </div>
+          <div>
+            <span class="text-sm font-medium text-gray-500">Total Spent</span>
+            <p class="text-gray-900 text-2xl font-bold">{formatPrice(customer.total_spent_cents)}</p>
+          </div>
+          <div>
+            <span class="text-sm font-medium text-gray-500">Average Order</span>
+            <p class="text-gray-900 text-lg">
+              {customer.total_orders > 0 ? formatPrice(Math.round(customer.total_spent_cents / customer.total_orders)) : '$0.00'}
+            </p>
+          </div>
+          {#if customer.last_order_date}
+            <div>
+              <span class="text-sm font-medium text-gray-500">Last Order</span>
+              <p class="text-gray-900">{formatDate(customer.last_order_date)}</p>
+            </div>
+          {/if}
+        </div>
+      </div>
+      
+      <!-- Customer Orders -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 lg:col-span-2">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Order History ({orders.length})</h2>
+        {#if orders.length > 0}
+          <div class="overflow-x-auto">
+            <table class="table w-full">
+              <thead>
+                <tr>
+                  <th class="text-black">Order Date</th>
+                  <th class="text-black">Due Date</th>
+                  <th class="text-black">Method</th>
+                  <th class="text-black">Total</th>
+                  <th class="text-black">Status</th>
+                  <th class="text-black">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {#each orders as order}
+                  <tr class="hover:bg-gray-200">
+                    <td>{formatDate(order.order_date)}</td>
+                    <td>{formatDate(order.delivery_date)}</td>
+                    <td>{capitalizeFirst(order.retrieval_method)}</td>
+                    <td>{formatPrice(order.total_cents)}</td>
+                    <td>
+                      <span class="badge {getStatusBadgeClass(order.status)}">
+                        {capitalizeFirst(order.status)}
+                      </span>
+                    </td>
+                    <td>
+                      <button 
+                        class="btn btn-sm btn-ghost"
+                        on:click={() => viewOrder(order.id)}
+                      >
+                        View Details
+                      </button>
+                    </td>
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
+          </div>
+        {:else}
+          <p class="text-gray-500 text-center py-8">No orders found for this customer.</p>
+        {/if}
       </div>
     </div>
-    
-    <!-- Notes -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <h2 class="text-xl font-semibold text-gray-800 mb-4">Notes</h2>
-      <p class="text-gray-900">{mockCustomer.notes}</p>
+  {:else}
+    <div class="flex justify-center items-center py-12">
+      <span class="loading loading-spinner loading-lg"></span>
+      <span class="ml-4 text-gray-600">Loading customer details...</span>
     </div>
-    
-    <!-- Recent Orders -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 lg:col-span-2">
-      <h2 class="text-xl font-semibold text-gray-800 mb-4">Recent Orders</h2>
-      <div class="overflow-x-auto">
-        <table class="table w-full">
-          <thead>
-            <tr>
-              <th>Order ID</th>
-              <th>Date</th>
-              <th>Total</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {#each mockCustomer.recentOrders as order}
-              <tr class="hover:bg-base-200">
-                <td>{order.id}</td>
-                <td>{new Date(order.date).toLocaleDateString()}</td>
-                <td>${order.total.toFixed(2)}</td>
-                <td><span class="badge badge-success">{order.status}</span></td>
-                <td>
-                  <button 
-                    class="btn btn-sm btn-ghost"
-                    on:click={() => viewOrder(order.id)}
-                  >
-                    View Details
-                  </button>
-                </td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+  {/if}
 </div> 
