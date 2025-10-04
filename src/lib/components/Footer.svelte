@@ -14,13 +14,13 @@
   ];
 </script>
 
-<footer class="bg-black text-white font-bold py-12 lg:py-16">
+<footer class="bg-black font-bold py-12 lg:py-16 footer-override">
   <div class="max-w-7xl mx-auto px-4 lg:px-8">
     <!-- Main footer content -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
       <!-- Navigation Links -->
       <div class="md:col-span-1">
-        <h3 class="font-semibold text-2xl mb-6">Navigation</h3>
+        <h3 class="font-semibold text-2xl mb-6 text-white">Navigation</h3>
         <div class="grid grid-cols-2 gap-4">
           {#each footerLinks as link}
             <a href={link.href} class="text-lg text-white footer-link transition-colors duration-200 py-2">
@@ -32,7 +32,7 @@
       
       <!-- Social Media -->
       <div class="md:col-span-1">
-        <h3 class="font-semibold text-2xl mb-6">Follow Us</h3>
+        <h3 class="font-semibold text-2xl mb-6 text-white">Follow Us</h3>
         <div class="flex space-x-4">
           {#each socialLinks as social}
             <a 
@@ -53,15 +53,15 @@
     <div class="border-t border-gray-600 pt-8 flex flex-col md:flex-row justify-between items-center">
       <div class="flex items-center mb-4 md:mb-0">
         <span class="text-2xl mr-2">🍎</span>
-        <span class="font-bold text-2xl" style="font-family: 'Oswald', sans-serif;">Caramel Apple Co.</span>
+        <span class="font-bold text-2xl text-white" style="font-family: 'Oswald', sans-serif;">Caramel Apple Co.</span>
       </div>
       
       <div class="text-sm text-gray-300 text-center md:text-right">
-        <p>&copy; 2025 Caramel Apple Co. All rights reserved.</p>
+        <p class="text-gray-300">&copy; 2025 Caramel Apple Co. All rights reserved.</p>
         <div class="flex flex-wrap justify-center md:justify-end gap-4 mt-2">
-          <a href="/terms" class="footer-link transition-colors duration-200">Terms of Service</a>
-          <a href="/privacy" class="footer-link transition-colors duration-200">Privacy Policy</a>
-          <a href="/accessibility" class="footer-link transition-colors duration-200">Accessibility</a>
+          <a href="/terms" class="footer-link transition-colors duration-200 text-gray-300">Terms of Service</a>
+          <a href="/privacy" class="footer-link transition-colors duration-200 text-gray-300">Privacy Policy</a>
+          <a href="/accessibility" class="footer-link transition-colors duration-200 text-gray-300">Accessibility</a>
         </div>
       </div>
     </div>
@@ -69,6 +69,15 @@
 </footer>
 
 <style>
+  /* Override global text color for footer */
+  .footer-override * {
+    color: white !important;
+  }
+  
+  .footer-override .text-gray-300 {
+    color: #d1d5db !important;
+  }
+  
   .footer-link:hover {
     background: linear-gradient(to right, var(--color-apple-dark) 0%, var(--color-apple-medium) 55%, var(--color-apple-light) 100%);
     -webkit-background-clip: text;
@@ -82,6 +91,6 @@
   }
   
   .social-link:hover :global(svg) {
-    color: white;
+    color: white !important;
   }
 </style> 
