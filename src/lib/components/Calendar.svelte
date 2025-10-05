@@ -87,7 +87,6 @@
   function getScheduleBlock(dateStr: string, scheduleList: ScheduleBlock[]): ScheduleBlock {
     const scheduleBlock = scheduleList.find(block => block.blockedDate === dateStr);
     if (scheduleBlock) {
-      console.log(`Found schedule data for ${dateStr}:`, scheduleBlock);
       return scheduleBlock;
     }
     

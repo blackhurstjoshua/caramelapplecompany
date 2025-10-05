@@ -84,9 +84,17 @@
     <div class="p-4 border-b border-gray-200">
       <div class="flex justify-between items-center">
         <h2 class="text-xl font-semibold text-gray-800">All Orders</h2>
-        {#if !loading && !hasError}
-          <span class="text-sm text-gray-500">{processedOrders.length} orders</span>
-        {/if}
+        <div class="flex items-center gap-4">
+          {#if !loading && !hasError}
+            <span class="text-sm text-gray-500">{processedOrders.length} orders</span>
+          {/if}
+          <button 
+            class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+            onclick={() => goto('/admin/orders/new')}
+          >
+            + New Order
+          </button>
+        </div>
       </div>
     </div>
     
