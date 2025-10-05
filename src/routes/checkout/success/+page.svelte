@@ -6,6 +6,8 @@
   import Footer from '$lib/components/Footer.svelte';
   import CTAButton from '$lib/components/CTAButton.svelte';
 
+  let { data } = $props();
+
   onMount(() => {
     // Ensure cart is cleared if landing here directly
     cart.clear();
