@@ -45,7 +45,7 @@
     {#if isAdmin && onDelete}
       <!-- Delete button for admin -->
       <button 
-        on:click={handleDelete}
+        onclick={handleDelete}
         class="absolute top-2 right-2 w-8 h-8 rounded-full bg-gradient-to-r from-red-500 to-red-600 text-white flex items-center justify-center hover:from-red-600 hover:to-red-700 transition-colors duration-200 font-bold text-sm"
         title="Delete product"
       >

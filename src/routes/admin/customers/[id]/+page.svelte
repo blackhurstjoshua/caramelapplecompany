@@ -45,7 +45,7 @@
   <div class="mb-6">
     <button 
       class="btn btn-ghost mb-4" 
-      on:click={goBack}
+      onclick={goBack}
     >
       ← Back to Customers
     </button>
@@ -136,7 +136,7 @@
                     <td>
                       <button 
                         class="btn btn-sm btn-ghost"
-                        on:click={() => viewOrder(order.id)}
+                        onclick={() => viewOrder(order.id)}
                       >
                         View Details
                       </button>

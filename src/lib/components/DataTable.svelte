@@ -46,7 +46,7 @@
         {#each data as row, index}
           <tr 
             class={onRowClick ? 'hover:bg-gray-200 cursor-pointer' : ''}
-            on:click={() => handleRowClick(row)}
+            onclick={() => handleRowClick(row)}
           >
             {#each columns as column}
               <td>{getCellValue(row, column.key)}</td>

@@ -111,7 +111,7 @@
       <p class="text-black">Manage your product offerings and visibility</p>
     </div>
     <button 
-      on:click={handleCreate}
+      onclick={handleCreate}
       class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
     >
       + Add New Product

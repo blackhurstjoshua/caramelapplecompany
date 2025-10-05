@@ -106,6 +106,14 @@
   function triggerFileInput() {
     fileInput?.click();
   }
+
+  function handleKeyDown(event: KeyboardEvent) {
+    // Allow Enter or Space to trigger file input (standard button behavior)
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      triggerFileInput();
+    }
+  }
 </script>
 
 <div class="w-full max-w-md mx-auto">
@@ -114,7 +122,7 @@
     bind:this={fileInput}
     type="file"
     accept={acceptedTypes}
-    on:change={handleFileSelect}
+    onchange={handleFileSelect}
     class="hidden"
   />
 
@@ -126,12 +134,14 @@
     class:border-gray-300={!dragOver}
     class:bg-gray-50={!dragOver && !uploading}
     class:bg-blue-100={uploading}
-    on:click={triggerFileInput}
-    on:drop={handleDrop}
-    on:dragover={handleDragOver}
-    on:dragleave={handleDragLeave}
+    onclick={triggerFileInput}
+    onkeydown={handleKeyDown}
+    ondrop={handleDrop}
+    ondragover={handleDragOver}
+    ondragleave={handleDragLeave}
     role="button"
     tabindex="0"
+    aria-label={label}
   >
     {#if uploading}
       <div class="flex flex-col items-center">
@@ -144,7 +154,7 @@
         <p class="text-sm text-green-600 font-medium">Upload successful!</p>
         <button
           type="button"
-          on:click|stopPropagation={clearUpload}
+          onclick={clearUpload}
           class="mt-2 text-xs text-gray-500 hover:text-gray-700 underline"
         >
           Upload another
@@ -174,7 +184,7 @@
       />
       <button
         type="button"
-        on:click={clearUpload}
+        onclick={clearUpload}
         class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
         aria-label="Remove image"
       >

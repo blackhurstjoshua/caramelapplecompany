@@ -214,14 +214,14 @@
       <div class="flex gap-2">
         <button
           class="btn btn-circle btn-sm"
-          on:click={() => navigateMonth(-1)}
+          onclick={() => navigateMonth(-1)}
           aria-label="Previous month"
         >
           ←
         </button>
         <button
           class="btn btn-circle btn-sm"
-          on:click={() => navigateMonth(1)}
+          onclick={() => navigateMonth(1)}
           aria-label="Next month"
         >
           →
@@ -232,14 +232,14 @@
     {#if editMode}
       <div class="flex gap-2">
         {#if isEditing}
-          <button class="btn btn-success btn-sm" on:click={saveChanges}>
+          <button class="btn btn-success btn-sm" onclick={saveChanges}>
             Save Changes
           </button>
-          <button class="btn btn-outline btn-sm" on:click={cancelEditing}>
+          <button class="btn btn-outline btn-sm" onclick={cancelEditing}>
             Cancel
           </button>
         {:else}
-          <button class="btn btn-primary btn-sm" on:click={startEditing}>
+          <button class="btn btn-primary btn-sm" onclick={startEditing}>
             Edit Schedule
           </button>
         {/if}
@@ -287,7 +287,7 @@
           <button
              class="calendar-day {cssClass} {isSelected ? 'selected' : ''} {isPast ? 'past' : ''} {isEditing ? 'editing' : ''} {!isSelectable && !editMode ? 'not-selectable' : ''}"
              disabled={(isPast && !editMode) || (!isSelectable && !editMode)}
-             on:click={() => toggleDayAvailability(dateStr)}
+             onclick={() => toggleDayAvailability(dateStr)}
              aria-label="{monthNames[day.getMonth()]} {day.getDate()}, {!scheduleBlock.deliveryBlocked && !scheduleBlock.pickupBlocked ? 'Both Available' : !scheduleBlock.deliveryBlocked ? 'Delivery Only' : !scheduleBlock.pickupBlocked ? 'Pickup Only' : 'Unavailable'}"
            >
              <span class="day-number">{day.getDate()}</span>

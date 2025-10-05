@@ -195,7 +195,7 @@
             <p class="text-gray-900">{formatDate(isEditMode ? editedOrder.order_date : order.order_date)}</p>
           </div>
           <div>
-            <label class="text-sm font-medium text-gray-500">Due Date</label>
+            <div class="text-sm font-medium text-gray-500">Due Date</div>
             {#if isEditMode}
               <input 
                 type="date" 
@@ -207,7 +207,7 @@
             {/if}
           </div>
           <div>
-            <label class="text-sm font-medium text-gray-500">Method</label>
+            <div class="text-sm font-medium text-gray-500">Method</div>
             {#if isEditMode}
               <select 
                 class="select select-bordered select-sm w-full mt-1 bg-white text-gray-900"
@@ -221,7 +221,7 @@
             {/if}
           </div>
           <div>
-            <label class="text-sm font-medium text-gray-500">Payment</label>
+            <div class="text-sm font-medium text-gray-500">Payment</div>
             {#if isEditMode}
               <select 
                 class="select select-bordered select-sm w-full mt-1 bg-white text-gray-900"
@@ -235,7 +235,7 @@
             {/if}
           </div>
           <div>
-            <label class="text-sm font-medium text-gray-500">Status</label>
+            <div class="text-sm font-medium text-gray-500">Status</div>
             {#if isEditMode}
               <select 
                 class="select select-bordered select-sm w-full mt-1 bg-white text-gray-900"
@@ -316,7 +316,7 @@
           {#if isEditMode}
             <div class="space-y-3">
               <div>
-                <label class="text-sm font-medium text-gray-500">Street Address</label>
+                <div class="text-sm font-medium text-gray-500">Street Address</div>
                 <input 
                   type="text" 
                   class="input input-bordered input-sm w-full mt-1 bg-white text-gray-900"
@@ -325,7 +325,7 @@
                 />
               </div>
               <div>
-                <label class="text-sm font-medium text-gray-500">Apt, suite, etc. (optional)</label>
+                <div class="text-sm font-medium text-gray-500">Apt, suite, etc. (optional)</div>
                 <input 
                   type="text" 
                   class="input input-bordered input-sm w-full mt-1 bg-white text-gray-900"
@@ -335,7 +335,7 @@
               </div>
               <div class="grid grid-cols-2 gap-3">
                 <div>
-                  <label class="text-sm font-medium text-gray-500">City</label>
+                  <div class="text-sm font-medium text-gray-500">City</div>
                   <input 
                     type="text" 
                     class="input input-bordered input-sm w-full mt-1 bg-white text-gray-900"
@@ -344,7 +344,7 @@
                   />
                 </div>
                 <div>
-                  <label class="text-sm font-medium text-gray-500">State</label>
+                  <div class="text-sm font-medium text-gray-500">State</div>
                   <input 
                     type="text" 
                     class="input input-bordered input-sm w-full mt-1 bg-white text-gray-900"
@@ -355,7 +355,7 @@
                 </div>
               </div>
               <div>
-                <label class="text-sm font-medium text-gray-500">ZIP Code</label>
+                <div class="text-sm font-medium text-gray-500">ZIP Code</div>
                 <input 
                   type="text" 
                   class="input input-bordered input-sm w-full mt-1 bg-white text-gray-900"

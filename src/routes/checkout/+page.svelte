@@ -280,11 +280,11 @@
               <legend class="text-sm font-medium text-gray-700 mb-3">Preferred Contact Method</legend>
               <div class="flex space-x-4">
                 <label class="cursor-pointer">
-                  <input type="radio" class="radio" name="contact" value="email" checked={contactMethod==='email'} on:change={() => contactMethod='email'}>
+                  <input type="radio" class="radio" name="contact" value="email" checked={contactMethod==='email'} onchange={() => contactMethod='email'}>
                   <span class="ml-2">Email</span>
                 </label>
                 <label class="cursor-pointer">
-                  <input type="radio" class="radio" name="contact" value="phone" checked={contactMethod==='phone'} on:change={() => contactMethod='phone'}>
+                  <input type="radio" class="radio" name="contact" value="phone" checked={contactMethod==='phone'} onchange={() => contactMethod='phone'}>
                   <span class="ml-2">Phone</span>
                 </label>
               </div>
@@ -308,11 +308,11 @@
               <legend class="text-sm font-medium text-gray-700 mb-3">How would you like to receive your order?</legend>
               <div class="flex space-x-4">
                 <label class="cursor-pointer">
-                  <input type="radio" class="radio" name="retrieval" value="pickup" checked={retrievalMethod==='pickup'} on:change={() => retrievalMethod='pickup'}>
+                  <input type="radio" class="radio" name="retrieval" value="pickup" checked={retrievalMethod==='pickup'} onchange={() => retrievalMethod='pickup'}>
                   <span class="ml-2">Pickup</span>
                 </label>
                 <label class="cursor-pointer">
-                  <input type="radio" class="radio" name="retrieval" value="delivery" checked={retrievalMethod==='delivery'} on:change={() => retrievalMethod='delivery'}>
+                  <input type="radio" class="radio" name="retrieval" value="delivery" checked={retrievalMethod==='delivery'} onchange={() => retrievalMethod='delivery'}>
                   <span class="ml-2">Delivery (+$10)</span>
                 </label>
               </div>
@@ -402,14 +402,14 @@
               <legend class="text-sm font-medium text-gray-700 mb-4">How would you like to pay?</legend>
               <div class="space-y-3">
                 <label class="cursor-pointer flex items-center p-4 border rounded-lg hover:bg-gray-50">
-                  <input type="radio" class="radio" name="payment" value="pickup" checked={paymentMethod==='pickup'} on:change={() => paymentMethod='pickup'}>
+                  <input type="radio" class="radio" name="payment" value="pickup" checked={paymentMethod==='pickup'} onchange={() => paymentMethod='pickup'}>
                   <div class="ml-3">
                     <div class="font-medium">Pay on {retrievalMethod === 'pickup' ? 'Pickup' : 'Delivery'}</div>
                     <div class="text-sm text-gray-600">Cash or Venmo when you receive your order</div>
                   </div>
                 </label>
                 <label class="cursor-pointer flex items-center p-4 border rounded-lg hover:bg-gray-50">
-                  <input type="radio" class="radio" name="payment" value="stripe" checked={paymentMethod==='stripe'} on:change={() => paymentMethod='stripe'}>
+                  <input type="radio" class="radio" name="payment" value="stripe" checked={paymentMethod==='stripe'} onchange={() => paymentMethod='stripe'}>
                   <div class="ml-3">
                     <div class="font-medium">Pay Now with Credit Card</div>
                     <div class="text-sm text-gray-600">Secure payment via Stripe</div>
@@ -457,7 +457,7 @@
         <button 
           class="btn btn-outline" 
           class:btn-disabled={currentStep === 1 || isSubmitting}
-          on:click={prevStep}
+          onclick={prevStep}
           disabled={currentStep === 1 || isSubmitting}
         >
           Previous
@@ -466,7 +466,7 @@
         {#if currentStep < totalSteps}
           <button 
             class="btn bg-black text-white" 
-            on:click={handleNext}
+            onclick={handleNext}
             disabled={$cart.length === 0 || isSubmitting}
           >
             Next
@@ -475,7 +475,7 @@
           <button 
             class="btn bg-black text-white" 
             class:loading={isSubmitting}
-            on:click={submitOrder}
+            onclick={submitOrder}
             disabled={$cart.length === 0 || isSubmitting}
           >
             {#if isSubmitting}

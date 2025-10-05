@@ -68,7 +68,7 @@
             </div>
             
             <!-- Login Form -->
-            <form on:submit|preventDefault={handleSubmit} class="space-y-6">
+            <form onsubmit={handleSubmit} class="space-y-6">
               <!-- Email Input -->
               <div class="form-control">
                 <label for="email" class="label">
@@ -135,7 +135,7 @@
               {#if showForgotPassword}
                 <button
                   type="button"
-                  on:click={() => onforgotpassword?.()}
+                  onclick={() => onforgotpassword?.()}
                   class="btn btn-ghost btn-sm w-full text-gray-600 hover:text-apple-medium hover:bg-gray-50"
                   disabled={loading}
                 >
@@ -146,7 +146,7 @@
               {#if showContactAdmin}
                 <button
                   type="button"
-                  on:click={() => oncontactadmin?.()}
+                  onclick={() => oncontactadmin?.()}
                   class="btn btn-ghost btn-sm w-full text-gray-600 hover:text-apple-medium hover:bg-gray-50"
                   disabled={loading}
                 >

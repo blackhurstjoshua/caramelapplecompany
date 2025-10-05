@@ -88,7 +88,7 @@
             loop
             poster={slide.imageUrl}
             playsinline
-            on:error={(e) => {
+            onerror={(e) => {
               // Hide video and show fallback image if video fails to load
               const video = e.target as HTMLVideoElement;
               const slideContainer = video.closest('.carousel-item');
@@ -137,14 +137,14 @@
     <div class="absolute left-4 right-4 top-1/2 flex -translate-y-1/2 transform justify-between z-20">
       <button 
         class="btn btn-circle btn-sm btn-outline border-white text-white hover:bg-white hover:text-black bg-black bg-opacity-30"
-        on:click={prevSlide}
+        onclick={prevSlide}
         aria-label="Previous slide"
       >
         ❮
       </button>
       <button 
         class="btn btn-circle btn-sm btn-outline border-white text-white hover:bg-white hover:text-black bg-black bg-opacity-30"
-        on:click={nextSlide}
+        onclick={nextSlide}
         aria-label="Next slide"
       >
         ❯
@@ -156,7 +156,7 @@
       {#each heroSlides as _, index}
         <button
           class="w-2 h-2 rounded-full transition-all duration-300 {currentSlide === index ? 'bg-white' : 'bg-white bg-opacity-50 hover:bg-opacity-75'}"
-          on:click={() => goToSlide(index)}
+          onclick={() => goToSlide(index)}
           aria-label="Go to slide {index + 1}"
         ></button>
       {/each}
@@ -178,12 +178,12 @@
         class="input input-bordered w-full bg-white border-gray-300 text-black placeholder-gray-400 rounded-lg focus:border-black font-body"
       />
       <div class="modal-action justify-between">
-        <button type="button" class="btn btn-ghost font-body" on:click={() => (document.getElementById('subscribe_modal') as HTMLDialogElement)?.close()}>Cancel</button>
+        <button type="button" class="btn btn-ghost font-body" onclick={() => (document.getElementById('subscribe_modal') as HTMLDialogElement)?.close()}>Cancel</button>
         <CTAButton type="submit">Subscribe</CTAButton>
       </div>
     </form>
   </div>
   <div class="modal-backdrop">
-    <button on:click={() => (document.getElementById('subscribe_modal') as HTMLDialogElement)?.close()}>close</button>
+    <button onclick={() => (document.getElementById('subscribe_modal') as HTMLDialogElement)?.close()}>close</button>
   </div>
 </dialog> 

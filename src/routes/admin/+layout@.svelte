@@ -138,7 +138,7 @@
           <span class="text-xl font-semibold text-gray-900" style="font-family: 'Oswald', sans-serif;">Admin Portal</span>
         </div>
         <button
-          on:click={toggleSidebar}
+          onclick={toggleSidebar}
           class="p-3 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors duration-200"
           aria-label="Close sidebar"
         >
@@ -171,7 +171,7 @@
           <p class="text-sm text-gray-500">Logged in as</p>
           <p class="text-base font-medium text-gray-900">{currentUser?.email || 'Admin User'}</p>
           <button
-            on:click={handleLogout}
+            onclick={handleLogout}
             class="mt-3 w-full px-4 py-2 text-sm font-medium text-gray-600 hover:text-apple-medium hover:bg-gray-50 rounded-lg transition-colors duration-200"
           >
             Sign Out
@@ -184,10 +184,10 @@
     {#if sidebarOpen}
       <div 
         class="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden" 
-        on:click={toggleSidebar}
+        onclick={toggleSidebar}
         role="button"
         tabindex="0"
-        on:keydown={(e) => e.key === 'Escape' && toggleSidebar()}
+        onkeydown={(e) => e.key === 'Escape' && toggleSidebar()}
       ></div>
     {/if}
 
@@ -199,7 +199,7 @@
           <div class="flex justify-between items-center py-4">
             <div class="flex items-center">
               <button
-                on:click={toggleSidebar}
+                onclick={toggleSidebar}
                 class="p-3 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors duration-200 mr-4"
                 aria-label="Toggle sidebar"
               >
@@ -215,7 +215,7 @@
               </div>
             </div>
             <button
-              on:click={handleLogout}
+              onclick={handleLogout}
               class="px-6 py-3 text-base font-medium text-gray-600 hover:text-apple-medium hover:bg-gray-50 rounded-lg transition-colors duration-200"
             >
               Sign Out

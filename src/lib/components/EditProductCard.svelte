@@ -79,7 +79,7 @@
     
     <!-- Cancel button -->
     <button 
-      on:click={onCancel}
+      onclick={onCancel}
       class="absolute top-2 right-2 w-8 h-8 rounded-full bg-gradient-to-r from-red-500 to-red-600 text-white flex items-center justify-center hover:from-red-600 hover:to-red-700 transition-colors duration-200 font-bold text-sm"
     >
       ✕
@@ -90,7 +90,7 @@
   <div class="p-6 flex flex-col flex-grow bg-neutral-100 space-y-4">
     <!-- Image Upload -->
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">Product Image</label>
+      <div class="block text-sm font-medium text-gray-700 mb-2">Product Image</div>
       <div class="max-w-xs">
         <ImageUpload
           folder="products"
@@ -133,7 +133,7 @@
         bind:value={price}
         min="0"
         step="0.01"
-        on:blur={validatePrice}
+        onblur={validatePrice}
         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         class:border-red-500={priceError}
         required
@@ -151,7 +151,7 @@
         bind:checked={featured}
         class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
       />
-      <label for="weeklySpecial" class="ml-2 block text-sm text-gray-700">
+      <label for="featured" class="ml-2 block text-sm text-gray-700">
         Featured on home page?
       </label>
     </div>

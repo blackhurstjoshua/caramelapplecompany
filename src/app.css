@@ -34,7 +34,12 @@
   }
   
   /* Override any light text defaults */
-  p, span, div, td, th, label, input, textarea, select {
+  p, div, td, th, label, input, textarea, select {
+    color: #1f2937;
+  }
+  
+  /* Spans inherit color by default, except in buttons/links with apple classes */
+  span:not(.greenApple span, .redApple span) {
     color: #1f2937;
   }
 }
@@ -59,6 +64,7 @@
   
   .greenApple {
     background: linear-gradient(to right, var(--color-apple-dark) 0%, var(--color-apple-medium) 75%, var(--color-apple-light) 100%);
+    color: white !important;
     position: relative;
     overflow: hidden;
     
@@ -79,6 +85,7 @@
   
   .redApple {
     background: linear-gradient(to right, var(--color-apple-red-dark) 0%, var(--color-apple-red-medium) 55%, var(--color-apple-red-light) 100%);
+    color: white !important;
     position: relative;
     overflow: hidden;
     

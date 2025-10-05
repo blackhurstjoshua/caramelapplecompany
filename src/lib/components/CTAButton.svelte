@@ -16,7 +16,7 @@
   
   const baseClasses = `
     inline-flex items-center justify-center font-semibold rounded-lg
-    ${appleClass} text-white border-none
+    ${appleClass} !text-white border-none
     disabled:opacity-50 disabled:cursor-not-allowed
     focus:outline-none focus:ring-2 ${focusRingColor} focus:ring-offset-2
     ${sizeClasses[size]}
@@ -25,14 +25,14 @@
 
 {#if href}
   <a {href} class="{baseClasses} no-underline" class:pointer-events-none={disabled}>
-    <span class="relative z-10">
+    <span class="relative z-10 !text-white">
       <slot />
     </span>
   </a>
 {:else}
   <button {type} {disabled} class={baseClasses} on:click>
-    <span class="relative z-10">
+    <span class="relative z-10 !text-white">
       <slot />
     </span>
   </button>
-{/if} 
+{/if}

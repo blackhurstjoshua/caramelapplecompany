@@ -276,7 +276,7 @@
   <div class="max-w-4xl space-y-4">
     <!-- Contact Information Section -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-      <div class="p-4 border-b border-gray-200 flex justify-between items-center cursor-pointer" onclick={() => contactSectionExpanded = !contactSectionExpanded}>
+      <button class="p-4 border-b border-gray-200 flex justify-between items-center cursor-pointer w-full text-left" onclick={() => contactSectionExpanded = !contactSectionExpanded}>
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center font-semibold">1</div>
           <h2 class="text-xl font-semibold text-gray-800">Contact Information</h2>
@@ -284,10 +284,10 @@
             <span class="text-sm text-gray-500">— {name}</span>
           {/if}
         </div>
-        <button class="btn btn-ghost btn-sm">
+        <span class="btn btn-ghost btn-sm">
           {contactSectionExpanded ? '▼' : '▶'}
-        </button>
-      </div>
+        </span>
+      </button>
       
       {#if contactSectionExpanded}
         <div class="p-6 space-y-4">
@@ -355,7 +355,7 @@
     
     <!-- Delivery Information Section -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-      <div class="p-4 border-b border-gray-200 flex justify-between items-center cursor-pointer" onclick={() => deliverySectionExpanded = !deliverySectionExpanded}>
+      <button class="p-4 border-b border-gray-200 flex justify-between items-center cursor-pointer w-full text-left" onclick={() => deliverySectionExpanded = !deliverySectionExpanded}>
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center font-semibold">2</div>
           <h2 class="text-xl font-semibold text-gray-800">Delivery Information</h2>
@@ -363,10 +363,10 @@
             <span class="text-sm text-gray-500">— {retrievalMethod === 'pickup' ? 'Pickup' : 'Delivery'}</span>
           {/if}
         </div>
-        <button class="btn btn-ghost btn-sm">
+        <span class="btn btn-ghost btn-sm">
           {deliverySectionExpanded ? '▼' : '▶'}
-        </button>
-      </div>
+        </span>
+      </button>
       
       {#if deliverySectionExpanded}
         <div class="p-6 space-y-4">
@@ -454,7 +454,7 @@
     
     <!-- Date Selection Section -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-      <div class="p-4 border-b border-gray-200 flex justify-between items-center cursor-pointer" onclick={() => dateSectionExpanded = !dateSectionExpanded}>
+      <button class="p-4 border-b border-gray-200 flex justify-between items-center cursor-pointer w-full text-left" onclick={() => dateSectionExpanded = !dateSectionExpanded}>
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center font-semibold">3</div>
           <h2 class="text-xl font-semibold text-gray-800">Choose Completion Date</h2>
@@ -464,10 +464,10 @@
             </span>
           {/if}
         </div>
-        <button class="btn btn-ghost btn-sm">
+        <span class="btn btn-ghost btn-sm">
           {dateSectionExpanded ? '▼' : '▶'}
-        </button>
-      </div>
+        </span>
+      </button>
       
       {#if dateSectionExpanded}
         <div class="p-6 space-y-4">
@@ -502,7 +502,7 @@
     
     <!-- Products Section -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-      <div class="p-4 border-b border-gray-200 flex justify-between items-center cursor-pointer" onclick={() => productsSectionExpanded = !productsSectionExpanded}>
+      <button class="p-4 border-b border-gray-200 flex justify-between items-center cursor-pointer w-full text-left" onclick={() => productsSectionExpanded = !productsSectionExpanded}>
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center font-semibold">4</div>
           <h2 class="text-xl font-semibold text-gray-800">Select Products</h2>
@@ -510,10 +510,10 @@
             <span class="text-sm text-gray-500">— {cartItems.length} item{cartItems.length !== 1 ? 's' : ''}</span>
           {/if}
         </div>
-        <button class="btn btn-ghost btn-sm">
+        <span class="btn btn-ghost btn-sm">
           {productsSectionExpanded ? '▼' : '▶'}
-        </button>
-      </div>
+        </span>
+      </button>
       
       {#if productsSectionExpanded}
         <div class="p-6">
