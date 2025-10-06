@@ -18,7 +18,6 @@
       <!-- Content -->
       <div class={isReversed ? "order-last lg:order-last" : "order-last lg:order-first"}>
         <h2 class="text-3xl lg:text-5xl font-bold text-black mb-6 leading-tight">
-          Featured Apple: 
           <span class="text-black">{product.name}</span>
         </h2>
         
