@@ -2,14 +2,9 @@ import type { RequestEvent } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
 import { CheckoutService, type CheckoutRequest } from '$lib/services/checkout';
 import Stripe from 'stripe';
-import { STRIPE_SECRET_KEY } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 import { createClient } from '@supabase/supabase-js';
-
-// Initialize Stripe with latest API version
-const stripe = new Stripe(STRIPE_SECRET_KEY, {
-  apiVersion: '2025-09-30.clover'
-});
 
 // Initialize Supabase client for fetching product data
 const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
@@ -25,6 +20,11 @@ export const POST = async ({ request, url }: RequestEvent) => {
     }
 
     if (isStripe) {
+      // Initialize Stripe with latest API version (at runtime)
+      const stripe = new Stripe(env.STRIPE_SECRET_KEY!, {
+        apiVersion: '2025-09-30.clover'
+      });
+
       // Create Stripe Checkout Session
       const checkoutRequest = body as CheckoutRequest;
       

@@ -1,13 +1,8 @@
 import type { RequestEvent } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
 import Stripe from 'stripe';
-import { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import { CheckoutService, type CheckoutRequest, type CheckoutItem } from '$lib/services/checkout';
-
-// Initialize Stripe with latest API version
-const stripe = new Stripe(STRIPE_SECRET_KEY, {
-  apiVersion: '2025-09-30.clover'
-});
 
 export const POST = async ({ request }: RequestEvent) => {
   const body = await request.text();
@@ -17,11 +12,16 @@ export const POST = async ({ request }: RequestEvent) => {
     return json({ error: 'No signature provided' }, { status: 400 });
   }
 
+  // Initialize Stripe with latest API version (at runtime)
+  const stripe = new Stripe(env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2025-09-30.clover'
+  });
+
   let event: Stripe.Event;
 
   try {
     // Verify webhook signature
-    event = stripe.webhooks.constructEvent(body, signature, STRIPE_WEBHOOK_SECRET);
+    event = stripe.webhooks.constructEvent(body, signature, env.STRIPE_WEBHOOK_SECRET!);
   } catch (err) {
     console.error('Webhook signature verification failed:', err);
     return json({ error: 'Invalid signature' }, { status: 400 });
