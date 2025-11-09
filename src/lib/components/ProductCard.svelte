@@ -35,7 +35,7 @@
 
 <div class="bg-neutral-100 rounded-2xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-lg transition-shadow duration-300 flex flex-col h-full" class:opacity-60={isAdmin && !product.isActive}>
   <!-- Image section -->
-  <div class="aspect-square bg-gradient-to-br from-amber-100 to-orange-200 flex items-center justify-center relative">
+  <div class="aspect-square bg-black flex items-center justify-center relative">
     {#if product.imagePath}
       <!-- Show product image -->
       <img 
@@ -47,7 +47,12 @@
       />
     {:else}
       <!-- Default placeholder -->
-      <div class="text-6xl">🍎</div>
+      <img 
+        src="/images/placeholder.svg" 
+        alt="Product placeholder"
+        class="w-32 h-32 invert"
+        style="filter: invert(1);"
+      />
     {/if}
     
     {#if isAdmin && !product.isActive}
