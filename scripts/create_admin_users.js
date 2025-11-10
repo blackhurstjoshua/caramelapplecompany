@@ -66,12 +66,31 @@ async function createAdminUsers() {
       console.log('   Role: admin (set in user_metadata)\n')
     }
 
+    // Create god role user
+    console.log('Creating blackhurst.joshua@gmail.com...')
+    const { data: godUser, error: godError } = await supabase.auth.admin.createUser({
+      email: 'blackhurst.joshua@gmail.com',
+      password: 'obstkorb',
+      email_confirm: true,  // ← Bypass email confirmation
+      user_metadata: { role: 'admin' }
+    })
+
+    if (godError) {
+      console.error('❌ Error creating god:', godError.message)
+    } else {
+      console.log('✅ God user created successfully!')
+      console.log('   ID:', godUser.user.id)
+      console.log('   Email:', godUser.user.email)
+      console.log('   Role: admin (set in user_metadata)\n')
+    }
+
     console.log('🎉 Admin user setup complete!')
     console.log('\nYou can now login to the admin portal at:')
     console.log('   http://localhost:5173/admin')
     console.log('\nLogin credentials:')
     console.log('   admin@caramelapple.com / test')
     console.log('   manager@caramelapple.com / hello')
+    console.log('   blackhurst.joshua@gmail.com / obstkorb')
 
   } catch (error) {
     console.error('💥 Script error:', error)

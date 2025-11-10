@@ -97,5 +97,43 @@ const getActiveProducts = async (): Promise<Product[]> => {
   return data.map(productData => new Product(productData));
 };
 
+/**
+ * Search products by name for order item editing
+ * Returns minimal fields needed for product picker
+ * Searches across ALL products (including inactive ones)
+ */
+const searchProductsByName = async (term: string): Promise<Array<{
+  id: string;
+  name: string;
+  description: string | null;
+  image_path: string | null;
+  price_cents: number;
+  is_active: boolean;
+}>> => {
+  if (!term || term.trim().length === 0) {
+    return [];
+  }
+
+  const { data, error } = await supabaseClient
+    .from('products')
+    .select('id, name, description, image_path, price_cents, is_active')
+    .ilike('name', `%${term}%`)
+    .order('is_active', { ascending: false }) // Active products first
+    .order('name', { ascending: true })
+    .limit(20);
+  
+  if (error) throw error;
+  return data || [];
+};
+
 // CRUD
-export { createProduct, getAllProducts, updateProduct, deleteProduct, reactivateProduct, getFeaturedApples, getActiveProducts };
+export { 
+  createProduct, 
+  getAllProducts, 
+  updateProduct, 
+  deleteProduct, 
+  reactivateProduct, 
+  getFeaturedApples, 
+  getActiveProducts,
+  searchProductsByName
+};
