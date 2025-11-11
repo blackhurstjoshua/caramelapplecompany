@@ -81,7 +81,7 @@
     
     <div class="flex items-center justify-between mt-auto gap-2">
       <span class="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">
-        ${product.toDollars()}
+        ${product.toDollars().toFixed(2)}
       </span>
       {#if isAdmin}
         <div class="flex gap-2">
