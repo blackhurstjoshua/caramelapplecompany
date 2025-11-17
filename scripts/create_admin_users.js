@@ -31,38 +31,20 @@ async function createAdminUsers() {
   
   try {
     // Create admin user
-    console.log('Creating admin@caramelapple.com...')
-    const { data: adminUser, error: adminError } = await supabase.auth.admin.createUser({
-      email: 'admin@caramelapple.com',
-      password: 'test',
+    console.log('Creating kriataleecook5@gmail.com...')
+    const { data: kristaUser, error: kristaError } = await supabase.auth.admin.createUser({
+      email: 'kriataleecook5@gmail.com',
+      password: '12345apples',
       email_confirm: true,  // ← Bypass email confirmation
       user_metadata: { role: 'admin' }
     })
 
-    if (adminError) {
-      console.error('❌ Error creating admin:', adminError.message)
+    if (kristaError) {
+      console.error('❌ Error creating admin:', kristaError.message)
     } else {
       console.log('✅ Admin user created successfully!')
-      console.log('   ID:', adminUser.user.id)
-      console.log('   Email:', adminUser.user.email)
-      console.log('   Role: admin (set in user_metadata)\n')
-    }
-
-    // Create manager user
-    console.log('Creating manager@caramelapple.com...')
-    const { data: managerUser, error: managerError } = await supabase.auth.admin.createUser({
-      email: 'manager@caramelapple.com',
-      password: 'hello',
-      email_confirm: true,  // ← Bypass email confirmation
-      user_metadata: { role: 'admin' }
-    })
-
-    if (managerError) {
-      console.error('❌ Error creating manager:', managerError.message)
-    } else {
-      console.log('✅ Manager user created successfully!')
-      console.log('   ID:', managerUser.user.id)
-      console.log('   Email:', managerUser.user.email)
+      console.log('   ID:', kristaUser.user.id)
+      console.log('   Email:', kristaUser.user.email)
       console.log('   Role: admin (set in user_metadata)\n')
     }
 
@@ -88,8 +70,7 @@ async function createAdminUsers() {
     console.log('\nYou can now login to the admin portal at:')
     console.log('   http://localhost:5173/admin')
     console.log('\nLogin credentials:')
-    console.log('   admin@caramelapple.com / test')
-    console.log('   manager@caramelapple.com / hello')
+    console.log('   Kriataleecook5@gmail.com / test')
     console.log('   blackhurst.joshua@gmail.com / obstkorb')
 
   } catch (error) {
