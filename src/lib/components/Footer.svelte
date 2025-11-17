@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { Facebook, Instagram } from '@lucide/svelte';
+  import { Instagram } from '@lucide/svelte';
+  import DoorDash from './DoorDash.svelte';
   
   const footerLinks = [
     { href: '/', label: 'Home' },
@@ -9,7 +10,8 @@
   ];
   
   const socialLinks = [
-    { href: 'https://www.instagram.com/caramel_apple_company', label: 'Instagram', icon: Instagram }
+    { href: 'https://www.instagram.com/caramel_apple_company', label: 'Instagram', icon: Instagram },
+    { href: 'https://www.doordash.com/store/caramel-apple-company-1825-w-traverse-pkwy-ste-e-lehi-36577383/', label: 'DoorDash', icon: DoorDash }
   ];
 </script>
 

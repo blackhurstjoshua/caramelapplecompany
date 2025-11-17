@@ -1,5 +1,6 @@
 <script lang="ts">
   import CTAButton from './CTAButton.svelte';
+  import DoorDash from './DoorDash.svelte';
   import { onMount } from 'svelte';
   
   // Hero carousel slides with videos and fallback images
@@ -123,10 +124,21 @@
               <span class="block {slide.textColor === 'white' ? 'text-white' : 'text-black'}">{slide.titleHighlight}</span>
             </h1>
             
-            <div class="flex justify-center">
+            <div class="flex flex-col items-center gap-3">
               <CTAButton href="/order" size="md" style="green">
                 Order Now
               </CTAButton>
+              
+              <!-- DoorDash Link -->
+              <a 
+                href="https://www.doordash.com/store/caramel-apple-company-1825-w-traverse-pkwy-ste-e-lehi-36577383/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                class="flex items-center gap-2 text-white text-sm font-semibold hover:opacity-80 transition-opacity bg-black bg-opacity-40 px-4 py-2 rounded-full"
+              >
+                <DoorDash class="w-5 h-5" />
+                Also on DoorDash
+              </a>
             </div>
           </div>
         </div>
