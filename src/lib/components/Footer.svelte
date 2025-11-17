@@ -9,8 +9,7 @@
   ];
   
   const socialLinks = [
-    { href: 'https://facebook.com/caramelappleco', label: 'Facebook', icon: Facebook },
-    { href: 'https://instagram.com/caramelappleco', label: 'Instagram', icon: Instagram }
+    { href: 'https://www.instagram.com/caramel_apple_company', label: 'Instagram', icon: Instagram }
   ];
 </script>
 
@@ -33,7 +32,7 @@
       <!-- Social Media -->
       <div class="md:col-span-1">
         <h3 class="font-semibold text-2xl mb-6 text-white">Follow Us</h3>
-        <div class="flex space-x-4">
+        <div class="flex space-x-4 mb-8">
           {#each socialLinks as social}
             <a 
               href={social.href}
@@ -46,6 +45,12 @@
             </a>
           {/each}
         </div>
+        
+        <!-- Contact Us -->
+        <h3 class="font-semibold text-2xl mb-6 text-white">Contact Us</h3>
+        <a href="tel:+18017877288" class="text-lg text-white footer-link transition-colors duration-200 inline-block">
+          (801) 787-7288
+        </a>
       </div>
     </div>
     

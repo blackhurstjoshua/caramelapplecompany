@@ -12,7 +12,7 @@
   }
 </script>
 
-<section class="py-16 lg:py-24 bg-cream">
+<section class="py-16 lg:py-8 bg-cream">
   <div class="max-w-7xl mx-auto px-4 lg:px-8">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center border border-black rounded-2xl p-8 lg:p-12 bg-cream">
       <!-- Content -->

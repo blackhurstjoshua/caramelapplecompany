@@ -15,7 +15,7 @@
     <div class="text-center">
       <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6" 
           style="font-family: var(--font-family-title);">
-        About <span class="text-green-600">Caramel Apple Company</span>
+        About <span style="color: var(--color-apple-medium);">Caramel Apple Company</span>
       </h1>
       <p class="text-xl lg:text-2xl text-gray-700 max-w-4xl mx-auto leading-relaxed">
         Crafting the perfect caramel apple experience since day one. 
@@ -31,7 +31,7 @@
     <div class="text-center mb-16">
       <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4" 
           style="font-family: var(--font-family-title);">
-        Get In Touch
+        What you need to know
       </h2>
       <p class="text-lg text-gray-600 max-w-2xl mx-auto">
         We'd love to hear from you! Reach out for orders, questions, or just to say hello.
@@ -40,7 +40,7 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       <!-- Phone Card -->
-      <div class="card bg-gradient-to-br from-green-500 to-green-600 text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+      <div class="card text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2" style="background: linear-gradient(to right, var(--color-apple-dark) 0%, var(--color-apple-medium) 75%, var(--color-apple-light) 100%);">
         <div class="card-body text-center">
           <div class="flex justify-center mb-4">
             <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
@@ -51,7 +51,7 @@
             Call Us
           </h3>
           <p class="text-4xl lg:text-5xl font-bold mb-2" style="font-family: var(--font-family-title);">
-            (555) 123-APPLE
+            (801) 787-7288
           </p>
           <p class="text-lg opacity-90">
             Mon-Sat: 8AM-8PM<br>
@@ -69,14 +69,14 @@
             </div>
           </div>
           <h3 class="card-title text-2xl justify-center mb-2 text-gray-900" style="font-family: var(--font-family-title);">
-            Visit Us
+            Pickup Location
           </h3>
           <p class="text-2xl lg:text-3xl font-bold mb-2 text-gray-900" style="font-family: var(--font-family-title);">
-            123 Apple Orchard Lane<br>
-            Sweet Valley, CA 90210
+            6229 West 10830 North<br>
+            Highland, UT 84003
           </p>
           <p class="text-lg text-gray-600">
-            Right next to the farmer's market
+            Outdoor refrigerator for pickup orders
           </p>
         </div>
       </div>
@@ -93,10 +93,10 @@
             Email Us
           </h3>
           <p class="text-2xl lg:text-3xl font-bold mb-2 text-white" style="font-family: var(--font-family-title);">
-            hello@caramelappleco.com
+            kriataleecook5@gmail.com
           </p>
           <p class="text-lg opacity-90 text-white">
-            We respond within 24 hours
+            We respond as soon as possible
           </p>
         </div>
       </div>
@@ -134,11 +134,11 @@
 
       <!-- Values Cards -->
       <div class="grid grid-cols-1 gap-6">
-        <div class="card bg-white shadow-lg border-l-4 border-green-500">
+        <div class="card bg-white shadow-lg border-l-4" style="border-left-color: var(--color-apple-medium);">
           <div class="card-body">
             <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                <Heart class="w-6 h-6 text-green-600" />
+              <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background-color: var(--color-apple-light); opacity: 0.3;">
+                <Heart class="w-6 h-6" style="color: var(--color-apple-dark);" />
               </div>
               <div>
                 <h3 class="text-xl font-bold text-gray-900" style="font-family: var(--font-family-title);">
@@ -223,8 +223,8 @@
               <span class="text-2xl font-bold text-gray-900">10:00 AM - 6:00 PM</span>
             </div>
           </div>
-          <div class="mt-4 p-3 bg-green-100 rounded-lg">
-            <p class="text-sm text-green-800 font-medium">
+          <div class="mt-4 p-3 rounded-lg" style="background-color: var(--color-apple-light);">
+            <p class="text-sm font-medium" style="color: black;">
               💡 Pro tip: Call ahead for large orders or special requests!
             </p>
           </div>
@@ -266,7 +266,7 @@
 </section>
 
 <!-- Call to Action -->
-<section class="py-16 bg-gradient-to-r from-green-500 to-green-600">
+<section class="py-16" style="background: linear-gradient(to right, var(--color-apple-dark) 0%, var(--color-apple-medium) 75%, var(--color-apple-light) 100%);">
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
     <h2 class="text-3xl lg:text-4xl font-bold text-white mb-6" 
         style="font-family: var(--font-family-title);">
@@ -277,10 +277,10 @@
       Place your order today and taste what everyone's talking about.
     </p>
     <div class="flex flex-col sm:flex-row gap-4 justify-center">
-      <a href="/order" class="btn btn-lg bg-white text-green-600 hover:bg-gray-100 border-none text-xl font-bold px-8">
+      <a href="/order" class="btn btn-lg bg-white border-none text-xl font-bold px-8 hover:bg-gray-100 order-now-btn">
         🍎 Order Now
       </a>
-      <a href="tel:555-123-2775" class="btn btn-lg btn-outline border-white text-white hover:bg-white hover:text-green-600 text-xl font-bold px-8">
+      <a href="tel:8017877288" class="btn btn-lg btn-outline border-white text-white text-xl font-bold px-8 call-us-btn">
         📞 Call Us
       </a>
     </div>
@@ -297,5 +297,19 @@
   
   .black-card-override .text-gray-300 {
     color: #d1d5db !important;
+  }
+  
+  /* CTA Button styles */
+  .order-now-btn {
+    color: var(--color-apple-medium) !important;
+  }
+  
+  .call-us-btn {
+    border-color: white !important;
+  }
+  
+  .call-us-btn:hover {
+    background-color: white !important;
+    color: var(--color-apple-medium) !important;
   }
 </style>
