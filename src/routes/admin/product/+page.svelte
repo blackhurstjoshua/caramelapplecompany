@@ -3,7 +3,7 @@
   import { Product } from '$lib/stores/product';
   import ProductCard from '$lib/components/ProductCard.svelte';
   import EditProductCard from '$lib/components/EditProductCard.svelte';
-  import { updateProduct, createProduct, deleteProduct } from '$lib/services/products';
+  import { updateProduct, createProduct, deleteProduct, reactivateProduct } from '$lib/services/products';
   
   export let data: PageData;
   
@@ -11,13 +11,20 @@
   let products: Product[] = data.products.map((p: any) => new Product(p));
   let editingIndex: number | null = null; // Track which product is being edited
   let isCreating = false; // Track if we're creating a new product
+  let showInactive = true; // Toggle to show/hide inactive products
   
-  function handleEdit(index: number) {
-    editingIndex = index;
+  // Computed filtered products
+  $: filteredProducts = showInactive 
+    ? products 
+    : products.filter(p => p.isActive);
+  
+  function handleEdit(product: Product) {
+    editingIndex = products.findIndex(p => p.id === product.id);
     isCreating = false;
   }
   
-  async function handleSave(index: number, updatedProduct: Product) {
+  async function handleSave(product: Product, updatedProduct: Product) {
+    const index = products.findIndex(p => p.id === product.id);
     try {
       // Convert Product to database format
       const productData = {
@@ -85,19 +92,40 @@
     isCreating = true;
   }
   
-  async function handleDelete(index: number) {
-    const product = products[index];
-    if (confirm(`Are you sure you want to delete "${product.name}"?`)) {
+  async function handleDelete(product: Product) {
+    if (confirm(`Are you sure you want to deactivate "${product.name}"? It will be hidden from customers.`)) {
       try {
         await deleteProduct(product.id);
-        products = products.filter((_, i) => i !== index);
+        // Update the product in our local state to reflect it's now inactive
+        const index = products.findIndex(p => p.id === product.id);
+        if (index !== -1) {
+          products[index].isActive = false;
+          products = [...products]; // Trigger reactivity
+        }
         if (editingIndex === index) {
           editingIndex = null;
           isCreating = false;
         }
       } catch (error) {
-        console.error('Error deleting product:', error);
-        alert('Failed to delete product. Please try again.');
+        console.error('Error deactivating product:', error);
+        alert('Failed to deactivate product. Please try again.');
+      }
+    }
+  }
+  
+  async function handleReactivate(product: Product) {
+    if (confirm(`Are you sure you want to reactivate "${product.name}"? It will be visible to customers again.`)) {
+      try {
+        await reactivateProduct(product.id);
+        // Update the product in our local state to reflect it's now active
+        const index = products.findIndex(p => p.id === product.id);
+        if (index !== -1) {
+          products[index].isActive = true;
+          products = [...products]; // Trigger reactivity
+        }
+      } catch (error) {
+        console.error('Error reactivating product:', error);
+        alert('Failed to reactivate product. Please try again.');
       }
     }
   }
@@ -105,33 +133,53 @@
 
 <div class="max-w-7xl mx-auto px-4 lg:px-8 py-8">
   <!-- Page Header -->
-  <div class="mb-8 flex justify-between items-center">
-    <div>
-      <h1 class="text-3xl font-bold text-black mb-2">Product Management</h1>
-      <p class="text-black">Manage your product offerings and visibility</p>
+  <div class="mb-8">
+    <div class="flex justify-between items-center mb-4">
+      <div>
+        <h1 class="text-3xl font-bold text-black mb-2">Product Management</h1>
+        <p class="text-black">Manage your product offerings and visibility</p>
+      </div>
+      <button 
+        onclick={handleCreate}
+        class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+      >
+        + Add New Product
+      </button>
     </div>
-    <button 
-      onclick={handleCreate}
-      class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
-    >
-      + Add New Product
-    </button>
+    
+    <!-- Filter Toggle -->
+    <div class="flex items-center gap-2 bg-neutral-100 p-4 rounded-lg border border-gray-200">
+      <input 
+        id="showInactive"
+        type="checkbox" 
+        bind:checked={showInactive}
+        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+      />
+      <label for="showInactive" class="text-sm font-medium text-gray-700">
+        Show inactive products
+      </label>
+      <span class="text-xs text-gray-500 ml-2">
+        ({filteredProducts.length} of {products.length} products shown)
+      </span>
+    </div>
   </div>
 
   <!-- Products Grid -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-    {#each products as product, index}
-      {#if editingIndex === index}
+    {#each filteredProducts as product}
+      {@const isEditing = editingIndex !== null && products[editingIndex]?.id === product.id}
+      {#if isEditing}
         <EditProductCard 
           product={product} 
-          onSave={(updatedFlavor) => handleSave(index, updatedFlavor)}
+          onSave={(updatedProduct) => handleSave(product, updatedProduct)}
           onCancel={handleCancel}
         />
       {:else}
         <ProductCard 
           product={product} 
-          onEdit={() => handleEdit(index)}
-          onDelete={() => handleDelete(index)}
+          onEdit={() => handleEdit(product)}
+          onDelete={() => handleDelete(product)}
+          onReactivate={() => handleReactivate(product)}
           isAdmin={true}
         />
       {/if}

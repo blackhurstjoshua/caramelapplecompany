@@ -14,11 +14,17 @@
   let description = product.description;
   let price = product.toDollars();
   let featured = product.featured;
+  let isActive = product.isActive;
   let imagePath = product.imagePath || '';
   let imageUrl = '';
   
   // Validation
   let priceError = '';
+  
+  // Enforce that featured products must be active
+  $: if (!isActive && featured) {
+    featured = false;
+  }
   
   function validatePrice() {
     const numPrice = parseFloat(price.toString());
@@ -55,7 +61,8 @@
       imagePath: imagePath,
       // ! Warning: This is a hack to get the price in cents
       priceCents: Math.round(price * 100), 
-      featured
+      featured,
+      isActive
     });
     
     onSave(updatedProduct);
@@ -64,7 +71,7 @@
 
 <div class="bg-neutral-100 rounded-2xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.05)] border-2 border-blue-300 flex flex-col h-full">
   <!-- Image section -->
-  <div class="aspect-square bg-gradient-to-br from-amber-100 to-orange-200 flex items-center justify-center relative">
+  <div class="aspect-square bg-black flex items-center justify-center relative">
     {#if imageUrl || imagePath || product.imagePath}
       <!-- Show uploaded image -->
       <img 
@@ -74,7 +81,12 @@
       />
     {:else}
       <!-- Default placeholder -->
-      <div class="text-6xl">🍎</div>
+      <img 
+        src="/images/placeholder.svg" 
+        alt="Product placeholder"
+        class="w-32 h-32 invert"
+        style="filter: invert(1);"
+      />
     {/if}
     
     <!-- Cancel button -->
@@ -143,16 +155,30 @@
       {/if}
     </div>
     
+    <!-- Active Checkbox -->
+    <div class="flex items-center">
+      <input 
+        id="isActive"
+        type="checkbox" 
+        bind:checked={isActive}
+        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+      />
+      <label for="isActive" class="ml-2 block text-sm text-gray-700">
+        Active (visible to customers)
+      </label>
+    </div>
+    
     <!-- Featured Checkbox -->
     <div class="flex items-center">
       <input 
         id="featured"
         type="checkbox" 
         bind:checked={featured}
-        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+        disabled={!isActive}
+        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
       />
-      <label for="featured" class="ml-2 block text-sm text-gray-700">
-        Featured on home page?
+      <label for="featured" class="ml-2 block text-sm text-gray-700" class:text-gray-400={!isActive}>
+        Featured on home page? {!isActive ? '(requires active)' : ''}
       </label>
     </div>
     

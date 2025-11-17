@@ -7,6 +7,7 @@
   export let product: Product;
   export let onEdit: (() => void) | undefined = undefined;
   export let onDelete: (() => void) | undefined = undefined;
+  export let onReactivate: (() => void) | undefined = undefined;
   export let isAdmin: boolean = false;
   
   function handleEdit() {
@@ -21,25 +22,44 @@
     }
   }
   
+  function handleReactivate() {
+    if (onReactivate) {
+      onReactivate();
+    }
+  }
+  
   function handleAddToCart() {
     cart.addItem(product);
   }
 </script>
 
-<div class="bg-neutral-100 rounded-2xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-lg transition-shadow duration-300 flex flex-col h-full">
+<div class="bg-neutral-100 rounded-2xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-lg transition-shadow duration-300 flex flex-col h-full" class:opacity-60={isAdmin && !product.isActive}>
   <!-- Image section -->
-  <div class="aspect-square bg-gradient-to-br from-amber-100 to-orange-200 flex items-center justify-center relative">
+  <div class="aspect-square bg-black flex items-center justify-center relative">
     {#if product.imagePath}
       <!-- Show product image -->
       <img 
         src={getImageUrl(product.imagePath)}
         alt={product.name}
         class="w-full h-full object-cover"
+        class:grayscale={isAdmin && !product.isActive}
         loading="lazy"
       />
     {:else}
       <!-- Default placeholder -->
-      <div class="text-6xl">🍎</div>
+      <img 
+        src="/images/placeholder.svg" 
+        alt="Product placeholder"
+        class="w-32 h-32 invert"
+        style="filter: invert(1);"
+      />
+    {/if}
+    
+    {#if isAdmin && !product.isActive}
+      <!-- Inactive badge -->
+      <div class="absolute top-2 left-2 bg-gray-700 text-white text-xs font-bold px-3 py-1 rounded-full">
+        INACTIVE
+      </div>
     {/if}
     
     {#if isAdmin && onDelete}
@@ -47,7 +67,7 @@
       <button 
         onclick={handleDelete}
         class="absolute top-2 right-2 w-8 h-8 rounded-full bg-gradient-to-r from-red-500 to-red-600 text-white flex items-center justify-center hover:from-red-600 hover:to-red-700 transition-colors duration-200 font-bold text-sm"
-        title="Delete product"
+        title={product.isActive ? "Deactivate product" : "Product already inactive"}
       >
         ✕
       </button>
@@ -59,14 +79,25 @@
     <h3 class="text-xl font-bold text-black mb-2">{product.name}</h3>
     <p class="text-gray-600 mb-4 leading-relaxed flex-grow">{product.description}</p>
     
-    <div class="flex items-center justify-between mt-auto">
+    <div class="flex items-center justify-between mt-auto gap-2">
       <span class="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">
-        ${product.toDollars()}
+        ${product.toDollars().toFixed(2)}
       </span>
       {#if isAdmin}
-        <CTAButton size="sm" on:click={handleEdit}>
-          Edit
-        </CTAButton>
+        <div class="flex gap-2">
+          {#if !product.isActive && onReactivate}
+            <button
+              onclick={handleReactivate}
+              class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-sm"
+              title="Reactivate product"
+            >
+              Reactivate
+            </button>
+          {/if}
+          <CTAButton size="sm" on:click={handleEdit}>
+            Edit
+          </CTAButton>
+        </div>
       {:else}
         <CTAButton size="sm" on:click={handleAddToCart}>
           Add to Cart

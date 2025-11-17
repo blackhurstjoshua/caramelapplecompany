@@ -1,9 +1,9 @@
 import type { PageLoad } from './$types';
-import { getAllProducts } from '$lib/services/products';
+import { getActiveProducts } from '$lib/services/products';
 
 export const load: PageLoad = async () => {
   try {
-    const products = await getAllProducts();
+    const products = await getActiveProducts();
     return {
       products
     };

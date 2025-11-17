@@ -13,7 +13,7 @@ export interface Order {
   customer_id: string;
   order_date: string;
   delivery_date: string;
-  status: 'pending' | 'processing' | 'completed' | 'cancelled';
+  status: 'pending' | 'processing' | 'completed' | 'cancelled' | 'refund_due';
   total_cents: number;
   subtotal_cents: number;
   retrieval_method: 'pickup' | 'delivery';
@@ -34,12 +34,22 @@ export interface OrderWithCustomer extends Order {
   };
 }
 
+export interface ProductSnapshot {
+  id: string;
+  name: string;
+  description?: string | null;
+  image_path?: string | null;
+  price_cents?: number | null;
+}
+
 export interface OrderItem {
   id: string;
   order_id: string;
   product_id: string;
   quantity: number;
   unit_price_cents: number;
+  product_snapshot?: ProductSnapshot | null;
+  item_notes?: string | null;
   created_at: string;
 }
 
@@ -59,7 +69,7 @@ export interface OrderDetails extends OrderWithCustomer {
 export interface CreateOrderData {
   customer_id: string;
   delivery_date: string;
-  status?: 'pending' | 'processing' | 'completed' | 'cancelled';
+  status?: 'pending' | 'processing' | 'completed' | 'cancelled' | 'refund_due';
   total_cents: number;
   subtotal_cents: number;
   retrieval_method: 'pickup' | 'delivery';
@@ -234,7 +244,7 @@ export class OrderService {
   /**
    * Update order status
    */
-  static async updateOrderStatus(orderId: string, status: 'pending' | 'processing' | 'completed' | 'cancelled'): Promise<Order> {
+  static async updateOrderStatus(orderId: string, status: 'pending' | 'processing' | 'completed' | 'cancelled' | 'refund_due'): Promise<Order> {
     const { data, error } = await supabaseClient
       .from('orders')
       .update({ status })
@@ -295,4 +305,48 @@ export class OrderService {
     if (error) throw error;
     return data || [];
   }
+
+  /**
+   * Update order with items using RPC (transactional)
+   * This method allows updating order header and items in a single atomic transaction
+   */
+  static async updateOrderWithItems(
+    orderId: string,
+    orderUpdates: OrderUpdatesPayload,
+    itemOps: ItemOp[]
+  ): Promise<any> {
+    const { data, error } = await supabaseClient.rpc(
+      'update_order_with_items',
+      {
+        p_order_id: orderId,
+        p_order_updates: orderUpdates,
+        p_items: itemOps
+      }
+    );
+    if (error) throw error;
+    return data;
+  }
 }
+
+// Types for updateOrderWithItems RPC
+export type ItemOp =
+  | { op: 'delete'; id: string }
+  | {
+      op: 'upsert';
+      id?: string;
+      product_id: string;
+      quantity: number;
+      unit_price_cents: number;
+      product_snapshot?: ProductSnapshot;
+      item_notes?: string | null;
+    };
+
+export type OrderUpdatesPayload = Partial<{
+  delivery_date: string; // YYYY-MM-DD
+  status: 'pending' | 'processing' | 'completed' | 'cancelled' | 'refund_due';
+  retrieval_method: 'pickup' | 'delivery';
+  payment_method: 'pickup' | 'stripe';
+  address: any;
+  customizations: string | null;
+  delivery_fee_cents: number;
+}>;

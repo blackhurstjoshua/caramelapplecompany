@@ -3,7 +3,8 @@
   import { goto } from '$app/navigation';
   import type { PageData } from './$types';
   import { formatPrice } from '$lib/utils/currency';
-  import { OrderService } from '$lib/services/orders';
+  import { OrderService, type ItemOp, type OrderUpdatesPayload, type ProductSnapshot } from '$lib/services/orders';
+  import { searchProductsByName } from '$lib/services/products';
   
   let { data }: { data: PageData } = $props();
   
@@ -13,8 +14,17 @@
   // Edit mode state
   let isEditMode = $state(false);
   let editedOrder = $state<any>(null);
+  let editedItems = $state<any[]>([]);
+  let deletedItemIds = $state<string[]>([]);
   let isSaving = $state(false);
   let saveError = $state('');
+  
+  // Product search state
+  let searchQuery = $state('');
+  let searchResults = $state<any[]>([]);
+  let isSearching = $state(false);
+  let showSearchModal = $state(false);
+  let replacingItemId = $state<string | null>(null);
   
   function goBack() {
     goto('/admin/orders');
@@ -38,6 +48,7 @@
       case 'processing': return 'badge-warning';
       case 'pending': return 'badge-info';
       case 'cancelled': return 'badge-error';
+      case 'refund_due': return 'badge-warning';
       default: return 'badge-ghost';
     }
   }
@@ -73,14 +84,138 @@
         zip: ''
       }
     };
+    
+    // Create editable copies of items
+    editedItems = (order.order_items || []).map((item: any) => ({
+      ...item,
+      // Use snapshot name if available, otherwise product name
+      displayName: item.product_snapshot?.name || item.product?.name || 'Unknown Product',
+      isNew: false,
+      isModified: false
+    }));
+    
+    deletedItemIds = [];
     isEditMode = true;
     saveError = '';
   }
   
   function cancelEdit() {
     editedOrder = null;
+    editedItems = [];
+    deletedItemIds = [];
     isEditMode = false;
     saveError = '';
+    showSearchModal = false;
+    searchQuery = '';
+    searchResults = [];
+  }
+  
+  function removeItem(itemId: string, isNew: boolean) {
+    if (isNew) {
+      // Just remove from the edited list (never saved to DB)
+      editedItems = editedItems.filter(item => item.id !== itemId);
+    } else {
+      // Mark for deletion
+      deletedItemIds = [...deletedItemIds, itemId];
+      editedItems = editedItems.filter(item => item.id !== itemId);
+    }
+  }
+  
+  function openAddItemModal() {
+    replacingItemId = null;
+    searchQuery = '';
+    searchResults = [];
+    showSearchModal = true;
+  }
+  
+  function openReplaceItemModal(itemId: string) {
+    replacingItemId = itemId;
+    searchQuery = '';
+    searchResults = [];
+    showSearchModal = true;
+  }
+  
+  async function handleSearchInput() {
+    if (!searchQuery || searchQuery.trim().length < 2) {
+      searchResults = [];
+      return;
+    }
+    
+    isSearching = true;
+    try {
+      const results = await searchProductsByName(searchQuery.trim());
+      searchResults = results;
+    } catch (error) {
+      console.error('Error searching products:', error);
+      searchResults = [];
+    } finally {
+      isSearching = false;
+    }
+  }
+  
+  function selectProduct(product: any) {
+    if (replacingItemId) {
+      // Replace existing item
+      const itemIndex = editedItems.findIndex(item => item.id === replacingItemId);
+      if (itemIndex >= 0) {
+        editedItems[itemIndex] = {
+          ...editedItems[itemIndex],
+          product_id: product.id,
+          unit_price_cents: product.price_cents,
+          displayName: product.name,
+          product_snapshot: {
+            id: product.id,
+            name: product.name,
+            description: product.description,
+            image_path: product.image_path,
+            price_cents: product.price_cents
+          },
+          isModified: true
+        };
+      }
+    } else {
+      // Add new item
+      const newItem = {
+        id: `new-${Date.now()}-${Math.random()}`,
+        order_id: orderId,
+        product_id: product.id,
+        quantity: 1,
+        unit_price_cents: product.price_cents,
+        displayName: product.name,
+        product_snapshot: {
+          id: product.id,
+          name: product.name,
+          description: product.description,
+          image_path: product.image_path,
+          price_cents: product.price_cents
+        },
+        item_notes: null,
+        isNew: true,
+        isModified: false
+      };
+      editedItems = [...editedItems, newItem];
+    }
+    
+    // Close modal
+    showSearchModal = false;
+    searchQuery = '';
+    searchResults = [];
+    replacingItemId = null;
+  }
+  
+  function markItemModified(itemId: string) {
+    const item = editedItems.find(i => i.id === itemId);
+    if (item && !item.isNew) {
+      item.isModified = true;
+    }
+  }
+  
+  function calculateSubtotal(): number {
+    return editedItems.reduce((sum, item) => sum + (item.quantity * item.unit_price_cents), 0);
+  }
+  
+  function calculateTotal(): number {
+    return calculateSubtotal() + (editedOrder?.delivery_fee_cents || 0);
   }
   
   async function saveEdit() {
@@ -90,24 +225,65 @@
     saveError = '';
     
     try {
-      // Prepare the update payload
-      const updates: any = {
+      // Prepare order updates
+      const orderUpdates: OrderUpdatesPayload = {
         delivery_date: editedOrder.delivery_date,
         status: editedOrder.status,
         retrieval_method: editedOrder.retrieval_method,
         payment_method: editedOrder.payment_method,
         customizations: editedOrder.customizations,
-        address: editedOrder.address
+        address: editedOrder.address,
+        delivery_fee_cents: editedOrder.delivery_fee_cents
       };
       
-      // Update the order
-      await OrderService.updateOrder(orderId, updates);
+      // Prepare item operations
+      const itemOps: ItemOp[] = [];
+      
+      // Handle deletions
+      for (const deletedId of deletedItemIds) {
+        itemOps.push({ op: 'delete', id: deletedId });
+      }
+      
+      // Handle upserts (new items and modified items)
+      for (const item of editedItems) {
+        if (item.isNew) {
+          // New item (no id)
+          itemOps.push({
+            op: 'upsert',
+            product_id: item.product_id,
+            quantity: item.quantity,
+            unit_price_cents: item.unit_price_cents,
+            product_snapshot: item.product_snapshot,
+            item_notes: item.item_notes
+          });
+        } else if (item.isModified || item.displayName !== (item.product_snapshot?.name || item.product?.name)) {
+          // Existing item that was modified
+          // Update snapshot name if display name was changed
+          const updatedSnapshot = {
+            ...item.product_snapshot,
+            name: item.displayName
+          };
+          
+          itemOps.push({
+            op: 'upsert',
+            id: item.id,
+            product_id: item.product_id,
+            quantity: item.quantity,
+            unit_price_cents: item.unit_price_cents,
+            product_snapshot: updatedSnapshot,
+            item_notes: item.item_notes
+          });
+        }
+      }
+      
+      // Call the RPC function
+      await OrderService.updateOrderWithItems(orderId, orderUpdates, itemOps);
       
       // Refresh the page to get the updated data
       window.location.reload();
     } catch (error) {
       console.error('Error updating order:', error);
-      saveError = 'Failed to update order. Please try again.';
+      saveError = error instanceof Error ? error.message : 'Failed to update order. Please try again.';
     } finally {
       isSaving = false;
     }
@@ -245,18 +421,148 @@
                 <option value="processing">Processing</option>
                 <option value="completed">Completed</option>
                 <option value="cancelled">Cancelled</option>
+                <option value="refund_due">Refund Due</option>
               </select>
             {:else}
-              <span class="badge {getStatusBadgeClass(order.status)}">{capitalizeFirst(order.status)}</span>
+              <span class="badge {getStatusBadgeClass(order.status)}">{capitalizeFirst(order.status.replace('_', ' '))}</span>
             {/if}
           </div>
+          {#if isEditMode}
+            <div>
+              <div class="text-sm font-medium text-gray-500">Delivery Fee</div>
+              <div class="flex items-center gap-2 mt-1">
+                <span class="text-gray-900">$</span>
+                <input 
+                  type="number" 
+                  step="0.01"
+                  min="0"
+                  class="input input-bordered input-sm flex-1 bg-white text-gray-900"
+                  value={editedOrder.delivery_fee_cents / 100}
+                  oninput={(e) => {
+                    const target = e.target as HTMLInputElement;
+                    editedOrder.delivery_fee_cents = Math.round(parseFloat(target.value || '0') * 100);
+                  }}
+                />
+              </div>
+            </div>
+          {/if}
         </div>
       </div>
       
       <!-- Order Items -->
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 lg:col-span-2">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Order Items</h2>
-        {#if order.order_items && order.order_items.length > 0}
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-semibold text-gray-800">Order Items</h2>
+          {#if isEditMode}
+            <button 
+              class="btn btn-sm btn-primary"
+              onclick={openAddItemModal}
+            >
+              + Add Item
+            </button>
+          {/if}
+        </div>
+        
+        {#if isEditMode && editedItems.length > 0}
+          <div class="overflow-x-auto">
+            <table class="table w-full">
+              <thead>
+                <tr>
+                  <th class="text-black">Product</th>
+                  <th class="text-black">Quantity</th>
+                  <th class="text-black">Unit Price</th>
+                  <th class="text-black">Subtotal</th>
+                  <th class="text-black">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {#each editedItems as item (item.id)}
+                  <tr>
+                    <td>
+                      <div class="space-y-2">
+                        <input 
+                          type="text" 
+                          class="input input-bordered input-sm w-full bg-white text-gray-900"
+                          bind:value={item.displayName}
+                          oninput={() => markItemModified(item.id)}
+                          placeholder="Product name"
+                        />
+                        <textarea 
+                          class="textarea textarea-bordered textarea-xs w-full bg-white text-gray-900"
+                          bind:value={item.item_notes}
+                          oninput={() => markItemModified(item.id)}
+                          placeholder="Notes (optional)"
+                          rows="2"
+                        ></textarea>
+                      </div>
+                    </td>
+                    <td>
+                      <input 
+                        type="number" 
+                        min="1"
+                        class="input input-bordered input-sm w-20 bg-white text-gray-900"
+                        bind:value={item.quantity}
+                        oninput={() => markItemModified(item.id)}
+                      />
+                    </td>
+                    <td>
+                      <div class="flex items-center gap-1">
+                        <span class="text-gray-900">$</span>
+                        <input 
+                          type="number" 
+                          step="0.01"
+                          min="0"
+                          class="input input-bordered input-sm w-24 bg-white text-gray-900"
+                          value={item.unit_price_cents / 100}
+                          oninput={(e) => {
+                            const target = e.target as HTMLInputElement;
+                            item.unit_price_cents = Math.round(parseFloat(target.value || '0') * 100);
+                            markItemModified(item.id);
+                          }}
+                        />
+                      </div>
+                    </td>
+                    <td class="font-medium">{formatPrice(item.unit_price_cents * item.quantity)}</td>
+                    <td>
+                      <div class="flex gap-2">
+                        <button 
+                          class="btn btn-xs btn-ghost"
+                          onclick={() => openReplaceItemModal(item.id)}
+                          title="Replace product"
+                        >
+                          🔄
+                        </button>
+                        <button 
+                          class="btn btn-xs btn-error"
+                          onclick={() => removeItem(item.id, item.isNew)}
+                          title="Remove item"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                {/each}
+              </tbody>
+              <tfoot>
+                <tr class="border-t-2">
+                  <td colspan="3" class="text-right font-medium text-black">Subtotal:</td>
+                  <td colspan="2" class="font-bold text-black">{formatPrice(calculateSubtotal())}</td>
+                </tr>
+                {#if editedOrder.delivery_fee_cents > 0}
+                  <tr>
+                    <td colspan="3" class="text-right font-medium text-black">Delivery Fee:</td>
+                    <td colspan="2" class="font-bold text-black">{formatPrice(editedOrder.delivery_fee_cents)}</td>
+                  </tr>
+                {/if}
+                <tr class="border-t">
+                  <td colspan="3" class="text-right font-bold text-lg text-black">Total:</td>
+                  <td colspan="2" class="font-bold text-lg text-black">{formatPrice(calculateTotal())}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        {:else if !isEditMode && order.order_items && order.order_items.length > 0}
           <div class="overflow-x-auto">
             <table class="table w-full">
               <thead>
@@ -272,9 +578,9 @@
                   <tr>
                     <td>
                       <div>
-                        <div class="font-medium">{item.product?.name || 'Unknown Product'}</div>
-                        {#if item.product?.description}
-                          <div class="text-sm text-gray-500">{item.product.description}</div>
+                        <div class="font-medium">{item.product_snapshot?.name || item.product?.name || 'Unknown Product'}</div>
+                        {#if item.item_notes}
+                          <div class="text-sm text-gray-500 italic">{item.item_notes}</div>
                         {/if}
                       </div>
                     </td>
@@ -393,4 +699,74 @@
       <span class="ml-4 text-gray-600">Loading order details...</span>
     </div>
   {/if}
-</div> 
+</div>
+
+<!-- Product Search Modal -->
+{#if showSearchModal}
+  <div class="modal modal-open">
+    <div class="modal-box max-w-2xl bg-white">
+      <h3 class="font-bold text-lg text-black mb-4">
+        {replacingItemId ? 'Replace Product' : 'Add Product'}
+      </h3>
+      
+      <div class="form-control mb-4">
+        <input 
+          type="text" 
+          placeholder="Search products by name..." 
+          class="input input-bordered w-full bg-white text-gray-900"
+          bind:value={searchQuery}
+          oninput={handleSearchInput}
+          autofocus
+        />
+      </div>
+      
+      {#if isSearching}
+        <div class="flex justify-center items-center py-8">
+          <span class="loading loading-spinner loading-md"></span>
+          <span class="ml-2 text-gray-600">Searching...</span>
+        </div>
+      {:else if searchResults.length > 0}
+        <div class="space-y-2 max-h-96 overflow-y-auto">
+          {#each searchResults as product}
+            <button 
+              class="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              class:opacity-50={!product.is_active}
+              onclick={() => selectProduct(product)}
+            >
+              <div class="flex justify-between items-start">
+                <div class="flex-1">
+                  <div class="font-medium text-black">
+                    {product.name}
+                    {#if !product.is_active}
+                      <span class="badge badge-sm badge-ghost ml-2">Inactive</span>
+                    {/if}
+                  </div>
+                  {#if product.description}
+                    <div class="text-sm text-gray-500 line-clamp-2">{product.description}</div>
+                  {/if}
+                </div>
+                <div class="text-right ml-4">
+                  <div class="font-bold text-black">{formatPrice(product.price_cents)}</div>
+                </div>
+              </div>
+            </button>
+          {/each}
+        </div>
+      {:else if searchQuery.trim().length >= 2}
+        <div class="text-center py-8 text-gray-500">
+          No products found matching "{searchQuery}"
+        </div>
+      {:else}
+        <div class="text-center py-8 text-gray-500">
+          Type at least 2 characters to search
+        </div>
+      {/if}
+      
+      <div class="modal-action">
+        <button class="btn" onclick={() => { showSearchModal = false; searchQuery = ''; searchResults = []; }}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}
