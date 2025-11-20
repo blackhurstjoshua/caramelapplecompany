@@ -10,6 +10,8 @@
   export let onReactivate: (() => void) | undefined = undefined;
   export let isAdmin: boolean = false;
   
+  let quantity: number = 1;
+  
   function handleEdit() {
     if (onEdit) {
       onEdit();
@@ -29,7 +31,12 @@
   }
   
   function handleAddToCart() {
-    cart.addItem(product);
+    // Add the product to cart multiple times based on quantity
+    for (let i = 0; i < quantity; i++) {
+      cart.addItem(product);
+    }
+    // Reset quantity to 1 after adding
+    quantity = 1;
   }
 </script>
 
@@ -79,10 +86,13 @@
     <h3 class="text-xl font-bold text-black mb-2">{product.name}</h3>
     <p class="text-gray-600 mb-4 leading-relaxed flex-grow">{product.description}</p>
     
-    <div class="flex items-center justify-between mt-auto gap-2">
-      <span class="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">
-        ${product.toDollars().toFixed(2)}
-      </span>
+    <div class="mt-auto">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">
+          ${product.toDollars().toFixed(2)}
+        </span>
+      </div>
+      
       {#if isAdmin}
         <div class="flex gap-2">
           {#if !product.isActive && onReactivate}
@@ -99,9 +109,28 @@
           </CTAButton>
         </div>
       {:else}
-        <CTAButton size="sm" on:click={handleAddToCart}>
-          Add to Cart
-        </CTAButton>
+        <!-- Quantity input and Add to Cart button for customers -->
+        <div class="flex flex-col gap-2">
+          <label class="input input-bordered validator flex items-center gap-2 bg-white">
+            <span class="text-sm font-medium text-gray-700">Qty:</span>
+            <input
+              type="number"
+              bind:value={quantity}
+              min="1"
+              max="999"
+              required
+              pattern="[0-9]*"
+              title="Must be between 1 and 999"
+              class="grow tabular-nums bg-white"
+              placeholder="1"
+            />
+          </label>
+          <div class="w-full">
+            <CTAButton size="sm" on:click={handleAddToCart}>
+              Add {quantity > 1 ? `${quantity}` : ''} to Cart
+            </CTAButton>
+          </div>
+        </div>
       {/if}
     </div>
   </div>
