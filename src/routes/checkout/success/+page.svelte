@@ -68,7 +68,7 @@
                 <span class="text-white text-sm font-bold">1</span>
               </div>
               <div>
-                <p class="text-gray-700"><strong>Order Confirmation:</strong> You'll receive a confirmation email within 15 minutes.</p>
+                <p class="text-gray-700"><strong>Order Confirmation:</strong> You'll receive a confirmation email or text within 15 minutes.</p>
               </div>
             </div>
             <div class="flex items-start space-x-3">
@@ -76,15 +76,15 @@
                 <span class="text-white text-sm font-bold">2</span>
               </div>
               <div>
-                <p class="text-gray-700"><strong>Preparation:</strong> We'll start handcrafting your delicious caramel apples fresh.</p>
+                <p class="text-gray-700"><strong>Contact:</strong> We'll reach out to coordinate pickup or delivery details.</p>
               </div>
             </div>
             <div class="flex items-start space-x-3">
               <div class="flex-shrink-0 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mt-1">
                 <span class="text-white text-sm font-bold">3</span>
-              </div>
-              <div>
-                <p class="text-gray-700"><strong>Contact:</strong> We'll reach out to coordinate pickup or delivery details.</p>
+                <div>
+                  <p class="text-gray-700"><strong>Preparation:</strong> We'll start handcrafting your delicious caramel apples fresh.</p>
+                </div>
               </div>
             </div>
           </div>
@@ -95,9 +95,6 @@
           <CTAButton size="lg" on:click={goHome}>
             Back to Home
           </CTAButton>
-          <CTAButton size="lg" style="red" on:click={orderAgain}>
-            Order More Apples
-          </CTAButton>
         </div>
 
         <!-- Contact Info -->
@@ -106,12 +103,12 @@
             Questions about your order?
           </p>
           <div class="flex flex-col sm:flex-row gap-2 justify-center items-center text-sm">
-            <a href="mailto:orders@caramelapple.co" class="text-green-600 hover:text-green-700 font-medium">
-              📧 orders@caramelapple.co
+            <a href="mailto:kriataleecook5@gmail.com" class="text-green-600 hover:text-green-700 font-medium">
+              📧 kriataleecook5@gmail.com
             </a>
             <span class="hidden sm:inline text-gray-300">•</span>
-            <a href="tel:+1234567890" class="text-green-600 hover:text-green-700 font-medium">
-              📞 (123) 456-7890
+            <a href="tel:+18017877288" class="text-green-600 hover:text-green-700 font-medium">
+              📞 (801) 787-7288
             </a>
           </div>
         </div>
