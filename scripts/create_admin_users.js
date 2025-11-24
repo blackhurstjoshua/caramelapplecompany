@@ -31,9 +31,9 @@ async function createAdminUsers() {
   
   try {
     // Create admin user
-    console.log('Creating kriataleecook5@gmail.com...')
+    console.log('Creating kristaleecook5@gmail.com...')
     const { data: kristaUser, error: kristaError } = await supabase.auth.admin.createUser({
-      email: 'kriataleecook5@gmail.com',
+      email: 'kristaleecook5@gmail.com',
       password: '12345apples',
       email_confirm: true,  // ← Bypass email confirmation
       user_metadata: { role: 'admin' }
