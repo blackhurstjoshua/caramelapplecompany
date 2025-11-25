@@ -8,7 +8,12 @@
   export let onEdit: (() => void) | undefined = undefined;
   export let onDelete: (() => void) | undefined = undefined;
   export let onReactivate: (() => void) | undefined = undefined;
+  export let onMoveUp: (() => void) | undefined = undefined;
+  export let onMoveDown: (() => void) | undefined = undefined;
   export let isAdmin: boolean = false;
+  export let position: number | undefined = undefined;
+  export let canMoveUp: boolean = true;
+  export let canMoveDown: boolean = true;
   
   let quantity: number = 1;
   
@@ -30,6 +35,18 @@
     }
   }
   
+  function handleMoveUp() {
+    if (onMoveUp) {
+      onMoveUp();
+    }
+  }
+  
+  function handleMoveDown() {
+    if (onMoveDown) {
+      onMoveDown();
+    }
+  }
+  
   function handleAddToCart() {
     // Add the product to cart multiple times based on quantity
     for (let i = 0; i < quantity; i++) {
@@ -43,6 +60,38 @@
 <div class="bg-neutral-100 rounded-2xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-lg transition-shadow duration-300 flex flex-col h-full" class:opacity-60={isAdmin && !product.isActive}>
   <!-- Image section -->
   <div class="aspect-square bg-black flex items-center justify-center relative">
+    {#if isAdmin && position !== undefined}
+      <!-- Position indicator -->
+      <div class="absolute top-2 left-2 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full z-10">
+        #{position}
+      </div>
+    {/if}
+    
+    {#if isAdmin && (onMoveUp || onMoveDown)}
+      <!-- Reorder controls -->
+      <div class="absolute top-2 right-14 flex flex-col gap-1 z-10">
+        {#if onMoveUp}
+          <button 
+            onclick={handleMoveUp}
+            disabled={!canMoveUp}
+            class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-center hover:from-blue-600 hover:to-blue-700 transition-colors duration-200 font-bold text-sm disabled:opacity-30 disabled:cursor-not-allowed"
+            title={canMoveUp ? "Move up" : "Already at top"}
+          >
+            ↑
+          </button>
+        {/if}
+        {#if onMoveDown}
+          <button 
+            onclick={handleMoveDown}
+            disabled={!canMoveDown}
+            class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-center hover:from-blue-600 hover:to-blue-700 transition-colors duration-200 font-bold text-sm disabled:opacity-30 disabled:cursor-not-allowed"
+            title={canMoveDown ? "Move down" : "Already at bottom"}
+          >
+            ↓
+          </button>
+        {/if}
+      </div>
+    {/if}
     {#if product.imagePath}
       <!-- Show product image -->
       <img 

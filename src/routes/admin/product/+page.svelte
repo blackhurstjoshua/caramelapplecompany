@@ -3,7 +3,7 @@
   import { Product } from '$lib/stores/product';
   import ProductCard from '$lib/components/ProductCard.svelte';
   import EditProductCard from '$lib/components/EditProductCard.svelte';
-  import { updateProduct, createProduct, deleteProduct, reactivateProduct } from '$lib/services/products';
+  import { updateProduct, createProduct, deleteProduct, reactivateProduct, swapProductOrder, getAllProducts } from '$lib/services/products';
   
   export let data: PageData;
   
@@ -129,6 +129,71 @@
       }
     }
   }
+  
+  async function handleMoveUp(product: Product) {
+    try {
+      const currentIndex = products.findIndex(p => p.id === product.id);
+      if (currentIndex <= 0) return; // Already at the top
+      
+      const previousProduct = products[currentIndex - 1];
+      
+      // Swap the sort orders in the database
+      await swapProductOrder(product.id, previousProduct.id);
+      
+      // Update local state by swapping positions
+      const tempSortOrder = products[currentIndex].sortOrder;
+      products[currentIndex].sortOrder = products[currentIndex - 1].sortOrder;
+      products[currentIndex - 1].sortOrder = tempSortOrder;
+      
+      // Swap the products in the array
+      [products[currentIndex], products[currentIndex - 1]] = [products[currentIndex - 1], products[currentIndex]];
+      
+      // Trigger reactivity
+      products = [...products];
+    } catch (error) {
+      console.error('Error moving product up:', error);
+      alert('Failed to move product. Please try again.');
+      // Refresh products from server to ensure consistency
+      await refreshProducts();
+    }
+  }
+  
+  async function handleMoveDown(product: Product) {
+    try {
+      const currentIndex = products.findIndex(p => p.id === product.id);
+      if (currentIndex >= products.length - 1) return; // Already at the bottom
+      
+      const nextProduct = products[currentIndex + 1];
+      
+      // Swap the sort orders in the database
+      await swapProductOrder(product.id, nextProduct.id);
+      
+      // Update local state by swapping positions
+      const tempSortOrder = products[currentIndex].sortOrder;
+      products[currentIndex].sortOrder = products[currentIndex + 1].sortOrder;
+      products[currentIndex + 1].sortOrder = tempSortOrder;
+      
+      // Swap the products in the array
+      [products[currentIndex], products[currentIndex + 1]] = [products[currentIndex + 1], products[currentIndex]];
+      
+      // Trigger reactivity
+      products = [...products];
+    } catch (error) {
+      console.error('Error moving product down:', error);
+      alert('Failed to move product. Please try again.');
+      // Refresh products from server to ensure consistency
+      await refreshProducts();
+    }
+  }
+  
+  async function refreshProducts() {
+    try {
+      const refreshedProducts = await getAllProducts();
+      products = refreshedProducts.map((p: any) => new Product(p));
+    } catch (error) {
+      console.error('Error refreshing products:', error);
+    }
+  }
 </script>
 
 <div class="max-w-7xl mx-auto px-4 lg:px-8 py-8">
@@ -166,8 +231,11 @@
 
   <!-- Products Grid -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-    {#each filteredProducts as product}
+    {#each filteredProducts as product, index}
       {@const isEditing = editingIndex !== null && products[editingIndex]?.id === product.id}
+      {@const actualIndex = products.findIndex(p => p.id === product.id)}
+      {@const canMoveUp = actualIndex > 0}
+      {@const canMoveDown = actualIndex < products.length - 1}
       {#if isEditing}
         <EditProductCard 
           product={product} 
@@ -176,10 +244,15 @@
         />
       {:else}
         <ProductCard 
-          product={product} 
+          product={product}
+          position={actualIndex + 1}
           onEdit={() => handleEdit(product)}
           onDelete={() => handleDelete(product)}
           onReactivate={() => handleReactivate(product)}
+          onMoveUp={() => handleMoveUp(product)}
+          onMoveDown={() => handleMoveDown(product)}
+          canMoveUp={canMoveUp}
+          canMoveDown={canMoveDown}
           isAdmin={true}
         />
       {/if}
