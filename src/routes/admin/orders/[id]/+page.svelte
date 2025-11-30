@@ -780,7 +780,6 @@
           class="input input-bordered w-full bg-white text-gray-900"
           bind:value={searchQuery}
           oninput={handleSearchInput}
-          autofocus
         />
       </div>
       

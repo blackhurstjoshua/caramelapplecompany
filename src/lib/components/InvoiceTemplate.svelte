@@ -31,69 +31,32 @@
 </script>
 
 <div class="invoice-container">
-  <!-- Header with Logo and Company Info -->
+  <!-- Header with Logo -->
   <header class="invoice-header">
-    <div class="company-info">
-      <img src="/logo.svg" alt="Caramel Apple Company" class="company-logo" />
-      <h1 class="company-name">Caramel Apple Company</h1>
-      <p class="company-details">
-        Premium Caramel Apples<br/>
-        <!-- Add your company address here -->
-      </p>
-    </div>
-    <div class="invoice-title-section">
-      <h2 class="invoice-title">INVOICE</h2>
-      <div class="invoice-meta">
-        <div class="meta-row">
-          <span class="meta-label">Invoice #:</span>
-          <span class="meta-value">{invoiceNumber}</span>
-        </div>
-        <div class="meta-row">
-          <span class="meta-label">Order Date:</span>
-          <span class="meta-value">{formatDate(order.order_date)}</span>
-        </div>
-        <div class="meta-row">
-          <span class="meta-label">Delivery Date:</span>
-          <span class="meta-value">{formatDate(order.delivery_date)}</span>
-        </div>
-      </div>
-    </div>
+    <img src="/logo.svg" alt="Caramel Apple Company" class="company-logo" />
+    <div class="company-text">CARAMEL APPLE COMPANY</div>
+    <div class="company-url">www.caramelapplecompany.com</div>
   </header>
   
-  <!-- Bill To Section -->
-  <section class="bill-to-section">
-    <h3 class="section-title">Bill To</h3>
-    <div class="customer-details">
+  <!-- Customer and Invoice Info -->
+  <section class="info-section">
+    <div class="issued-to">
+      <h3 class="section-title">ISSUED TO:</h3>
       <p class="customer-name">{order.customer.name}</p>
-      {#if order.customer.email}
-        <p class="customer-contact">{order.customer.email}</p>
+      {#if order.address && order.retrieval_method === 'delivery'}
+        {#each formatAddress(order.address) as line}
+          <p class="customer-detail">{line}</p>
+        {/each}
       {/if}
       {#if order.customer.phone}
-        <p class="customer-contact">{order.customer.phone}</p>
-      {/if}
-      {#if order.address && order.retrieval_method === 'delivery'}
-        <div class="customer-address">
-          {#each formatAddress(order.address) as line}
-            <p>{line}</p>
-          {/each}
-        </div>
+        <p class="customer-detail">{order.customer.phone}</p>
       {/if}
     </div>
-  </section>
-  
-  <!-- Order Details -->
-  <section class="order-details-section">
-    <div class="detail-item">
-      <span class="detail-label">Retrieval Method:</span>
-      <span class="detail-value">{order.retrieval_method === 'pickup' ? 'Pickup' : 'Delivery'}</span>
-    </div>
-    <div class="detail-item">
-      <span class="detail-label">Payment Method:</span>
-      <span class="detail-value">{order.payment_method === 'stripe' ? 'Card (Stripe)' : 'Pay on ' + (order.retrieval_method === 'pickup' ? 'Pickup' : 'Delivery')}</span>
-    </div>
-    <div class="detail-item">
-      <span class="detail-label">Status:</span>
-      <span class="detail-value status-{order.status}">{order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ')}</span>
+    
+    <div class="invoice-info">
+      <h3 class="section-title">INVOICE NO:</h3>
+      <p class="invoice-number">#{invoiceNumber}</p>
+      <p class="invoice-date">{formatDate(order.order_date)}</p>
     </div>
   </section>
   
@@ -102,16 +65,16 @@
     <table class="items-table">
       <thead>
         <tr>
-          <th class="item-description">Description</th>
-          <th class="item-quantity">Quantity</th>
-          <th class="item-price">Unit Price</th>
-          <th class="item-total">Total</th>
+          <th class="th-description">DESCRIPTION</th>
+          <th class="th-price">UNIT PRICE</th>
+          <th class="th-qty">QTY</th>
+          <th class="th-total">TOTAL</th>
         </tr>
       </thead>
       <tbody>
         {#each order.order_items as item}
           <tr>
-            <td class="item-description">
+            <td class="td-description">
               <div class="item-name">
                 {item.product_snapshot?.name || item.product?.name || 'Unknown Product'}
               </div>
@@ -119,212 +82,169 @@
                 <div class="item-notes">{item.item_notes}</div>
               {/if}
             </td>
-            <td class="item-quantity">{item.quantity}</td>
-            <td class="item-price">{formatPrice(item.unit_price_cents)}</td>
-            <td class="item-total">{formatPrice(item.unit_price_cents * item.quantity)}</td>
+            <td class="td-price">{formatPrice(item.unit_price_cents)}</td>
+            <td class="td-qty">{item.quantity}</td>
+            <td class="td-total">{formatPrice(item.unit_price_cents * item.quantity)}</td>
           </tr>
         {/each}
+        
+        {#if order.delivery_fee_cents > 0}
+          <tr>
+            <td class="td-description">
+              <div class="item-name">Delivery charge</div>
+            </td>
+            <td class="td-price"></td>
+            <td class="td-qty">n/a</td>
+            <td class="td-total">{formatPrice(order.delivery_fee_cents)}</td>
+          </tr>
+        {/if}
+        
+        {#if order.customizations}
+          <tr>
+            <td class="td-description">
+              <div class="item-name">Special Instructions</div>
+              <div class="item-notes">{order.customizations}</div>
+            </td>
+            <td class="td-price"></td>
+            <td class="td-qty"></td>
+            <td class="td-total">Included</td>
+          </tr>
+        {/if}
       </tbody>
     </table>
   </section>
   
   <!-- Totals Section -->
   <section class="totals-section">
-    <div class="totals-content">
-      <div class="total-row">
-        <span class="total-label">Subtotal:</span>
-        <span class="total-value">{formatPrice(order.subtotal_cents)}</span>
+    <div class="total-row main-total">
+      <span class="total-label">TOTAL</span>
+      <span class="total-value">{formatPrice(order.total_cents)}</span>
+    </div>
+    
+    <div class="subtotals">
+      <div class="subtotal-row">
+        <span class="subtotal-label">Taxes</span>
+        <span class="subtotal-value">$0.00</span>
       </div>
-      {#if order.delivery_fee_cents > 0}
-        <div class="total-row">
-          <span class="total-label">Delivery Fee:</span>
-          <span class="total-value">{formatPrice(order.delivery_fee_cents)}</span>
-        </div>
-      {/if}
-      <div class="total-row grand-total">
-        <span class="total-label">Total:</span>
-        <span class="total-value">{formatPrice(order.total_cents)}</span>
+      <div class="subtotal-row">
+        <span class="subtotal-label">Total</span>
+        <span class="subtotal-value">{formatPrice(order.total_cents)}</span>
+      </div>
+      <div class="amount-due-row">
+        <span class="amount-label">Amount due</span>
+        <span class="amount-value">{formatPrice(order.total_cents)}</span>
       </div>
     </div>
   </section>
   
-  <!-- Special Instructions -->
-  {#if order.customizations}
-    <section class="notes-section">
-      <h3 class="section-title">Special Instructions</h3>
-      <p class="notes-content">{order.customizations}</p>
-    </section>
-  {/if}
-  
-  <!-- Footer -->
-  <footer class="invoice-footer">
-    <p>Thank you for your business!</p>
-  </footer>
+  <!-- Payment Details -->
+  <section class="payment-section">
+    <h3 class="payment-title">PAYMENT DETAILS</h3>
+    <p class="payment-text">
+      Payment Method: {order.payment_method === 'stripe' ? 'Card (Stripe)' : 'Pay on ' + (order.retrieval_method === 'pickup' ? 'Pickup' : 'Delivery')}
+    </p>
+    {#if order.retrieval_method === 'pickup'}
+      <p class="payment-text">Pickup at store location</p>
+    {:else}
+      <p class="payment-text">Delivery Date: {formatDate(order.delivery_date)}</p>
+    {/if}
+  </section>
 </div>
 
 <style>
   .invoice-container {
     max-width: 8.5in;
     margin: 0 auto;
-    padding: 0.5in;
+    padding: 0.5in 0.75in;
     background: white;
-    color: #1f2937;
-    font-family: 'Roboto', -apple-system, sans-serif;
-    font-size: 11pt;
-    line-height: 1.4;
+    color: #3a3a3a;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 10pt;
+    line-height: 1.5;
   }
   
-  /* Header */
+  /* Header with Logo */
   .invoice-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    text-align: center;
     margin-bottom: 2rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 3px solid #8FBC5A;
-  }
-  
-  .company-info {
-    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
   
   .company-logo {
-    width: 80px;
-    height: 80px;
+    width: 120px;
+    height: 120px;
     margin-bottom: 0.5rem;
+    border: none;
+    outline: none;
+    display: block;
+    shape-rendering: geometricPrecision;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
   
-  .company-name {
-    font-size: 20pt;
-    font-weight: 700;
-    color: #6B9B37;
-    margin: 0 0 0.25rem 0;
-    font-family: 'Oswald', sans-serif;
-  }
-  
-  .company-details {
+  .company-text {
     font-size: 9pt;
-    color: #6b7280;
-    line-height: 1.5;
-    margin: 0;
+    letter-spacing: 2px;
+    margin-top: 0.5rem;
+    color: #3a3a3a;
   }
   
-  .invoice-title-section {
+  .company-url {
+    font-size: 8pt;
+    color: #666;
+    margin-top: 0.25rem;
+  }
+  
+  /* Customer and Invoice Info Section */
+  .info-section {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #3a3a3a;
+  }
+  
+  .issued-to {
+    flex: 1;
+  }
+  
+  .invoice-info {
     text-align: right;
   }
   
-  .invoice-title {
-    font-size: 28pt;
-    font-weight: 700;
-    color: #6B9B37;
-    margin: 0 0 1rem 0;
-    font-family: 'Oswald', sans-serif;
-  }
-  
-  .invoice-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-  
-  .meta-row {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-  }
-  
-  .meta-label {
-    font-weight: 600;
-    color: #4b5563;
-  }
-  
-  .meta-value {
-    color: #1f2937;
-  }
-  
-  /* Bill To Section */
-  .bill-to-section {
-    margin-bottom: 1.5rem;
-  }
-  
   .section-title {
-    font-size: 12pt;
-    font-weight: 700;
-    color: #6B9B37;
-    margin: 0 0 0.5rem 0;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  
-  .customer-details {
-    padding: 0.75rem;
-    background: #f9fafb;
-    border-left: 3px solid #8FBC5A;
+    font-size: 9pt;
+    font-weight: 600;
+    letter-spacing: 1px;
+    margin: 0 0 0.75rem 0;
+    color: #3a3a3a;
   }
   
   .customer-name {
-    font-weight: 700;
-    font-size: 11pt;
+    font-size: 10pt;
     margin: 0 0 0.25rem 0;
+    color: #3a3a3a;
   }
   
-  .customer-contact {
-    margin: 0.125rem 0;
+  .customer-detail {
     font-size: 10pt;
-    color: #4b5563;
-  }
-  
-  .customer-address {
-    margin-top: 0.5rem;
-  }
-  
-  .customer-address p {
     margin: 0.125rem 0;
+    color: #3a3a3a;
+  }
+  
+  .invoice-number {
     font-size: 10pt;
-  }
-  
-  /* Order Details */
-  .order-details-section {
-    display: flex;
-    gap: 2rem;
-    margin-bottom: 1.5rem;
-    padding: 0.75rem;
-    background: #f9fafb;
-    border-radius: 4px;
-  }
-  
-  .detail-item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-  
-  .detail-label {
-    font-size: 9pt;
-    color: #6b7280;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  
-  .detail-value {
     font-weight: 600;
-    color: #1f2937;
+    margin: 0 0 0.5rem 0;
+    color: #3a3a3a;
   }
   
-  .status-completed {
-    color: #059669;
-  }
-  
-  .status-pending {
-    color: #d97706;
-  }
-  
-  .status-processing {
-    color: #2563eb;
-  }
-  
-  .status-cancelled {
-    color: #dc2626;
+  .invoice-date {
+    font-size: 10pt;
+    margin: 0;
+    color: #3a3a3a;
   }
   
   /* Items Table */
@@ -339,127 +259,147 @@
   }
   
   .items-table thead {
-    background: #6B9B37;
-    color: white;
+    border-bottom: 1px solid #3a3a3a;
   }
   
   .items-table th {
-    padding: 0.75rem;
+    padding: 0.5rem 0.5rem 0.75rem 0;
     text-align: left;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-weight: 600;
     font-size: 9pt;
+    letter-spacing: 1px;
+    color: #3a3a3a;
   }
   
-  .items-table th.item-quantity,
-  .items-table th.item-price,
-  .items-table th.item-total {
+  .items-table th.th-price,
+  .items-table th.th-qty,
+  .items-table th.th-total {
     text-align: right;
   }
   
   .items-table tbody tr {
-    border-bottom: 1px solid #e5e7eb;
-  }
-  
-  .items-table tbody tr:last-child {
-    border-bottom: 2px solid #d1d5db;
+    border-bottom: none;
   }
   
   .items-table td {
-    padding: 0.75rem;
-    color: #1f2937;
+    padding: 1rem 0.5rem 1rem 0;
+    color: #3a3a3a;
+    vertical-align: top;
   }
   
-  .items-table td.item-quantity,
-  .items-table td.item-price,
-  .items-table td.item-total {
+  .td-price,
+  .td-qty,
+  .td-total {
     text-align: right;
   }
   
   .item-name {
-    font-weight: 600;
+    font-weight: 400;
+    margin-bottom: 0.25rem;
   }
   
   .item-notes {
     font-size: 9pt;
-    color: #6b7280;
-    font-style: italic;
+    color: #666;
     margin-top: 0.25rem;
   }
   
   /* Totals Section */
   .totals-section {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 2rem;
-  }
-  
-  .totals-content {
-    min-width: 250px;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #3a3a3a;
   }
   
   .total-row {
     display: flex;
     justify-content: space-between;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 1rem;
   }
   
-  .total-row.grand-total {
-    margin-top: 0.5rem;
-    padding-top: 0.75rem;
-    border-top: 2px solid #6B9B37;
-    border-bottom: 3px double #6B9B37;
-    font-size: 12pt;
+  .total-row.main-total {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #3a3a3a;
   }
   
   .total-label {
+    font-size: 10pt;
     font-weight: 600;
-    color: #4b5563;
+    letter-spacing: 1px;
+    color: #3a3a3a;
   }
   
   .total-value {
-    font-weight: 700;
-    color: #1f2937;
+    font-size: 12pt;
+    font-weight: 400;
+    text-align: right;
+    color: #3a3a3a;
   }
   
-  .grand-total .total-label,
-  .grand-total .total-value {
-    font-size: 14pt;
-    color: #6B9B37;
+  .subtotals {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    margin-top: 1rem;
   }
   
-  /* Notes Section */
-  .notes-section {
-    margin-bottom: 2rem;
-    padding: 1rem;
-    background: #f9fafb;
-    border-left: 3px solid #8FBC5A;
+  .subtotal-row,
+  .amount-due-row {
+    display: flex;
+    justify-content: space-between;
+    min-width: 250px;
   }
   
-  .notes-content {
-    margin: 0.5rem 0 0 0;
-    color: #4b5563;
+  .subtotal-label,
+  .amount-label {
     font-size: 10pt;
-    white-space: pre-wrap;
+    color: #3a3a3a;
   }
   
-  /* Footer */
-  .invoice-footer {
-    text-align: center;
-    padding-top: 2rem;
-    margin-top: 2rem;
-    border-top: 2px solid #e5e7eb;
-    color: #6b7280;
+  .subtotal-value,
+  .amount-value {
     font-size: 10pt;
+    text-align: right;
+    color: #3a3a3a;
+  }
+  
+  .amount-due-row {
+    margin-top: 0.5rem;
+  }
+  
+  .amount-label {
+    font-weight: 600;
+  }
+  
+  .amount-value {
+    font-weight: 600;
+  }
+  
+  /* Payment Section */
+  .payment-section {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .payment-title {
+    font-size: 9pt;
+    font-weight: 600;
+    letter-spacing: 1px;
+    margin: 0 0 0.75rem 0;
+    color: #3a3a3a;
+  }
+  
+  .payment-text {
+    font-size: 10pt;
+    margin: 0.25rem 0;
+    color: #3a3a3a;
   }
   
   /* Print Styles */
   @media print {
     .invoice-container {
-      padding: 0;
-      box-shadow: none;
+      padding: 0.5in;
     }
     
     @page {
