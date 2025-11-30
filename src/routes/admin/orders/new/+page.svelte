@@ -6,30 +6,26 @@
   import { Product } from '$lib/stores/product';
   import { formatPrice } from '$lib/utils/currency';
   import type { DateAvailability } from '$lib/types';
+  import type { Store } from '$lib/services/stores';
+  import { parseAddress } from '$lib/services/stores';
   
   interface PageData {
     products: any[];
     dateAvailability: DateAvailability[];
+    stores: Store[];
     error?: string;
   }
   
   let { data }: { data: PageData } = $props();
-  
-  // Debug: Log the products data
-  $effect(() => {
-    console.log('Products data:', data.products);
-    console.log('Number of products:', data.products?.length);
-    if (data.products?.length > 0) {
-      console.log('First product:', data.products[0]);
-      console.log('Active products:', data.products.filter((p: any) => p.is_active));
-    }
-  });
   
   // Form sections state (collapsible)
   let contactSectionExpanded = $state(true);
   let deliverySectionExpanded = $state(false);
   let dateSectionExpanded = $state(false);
   let productsSectionExpanded = $state(false);
+  
+  // Store selection
+  let selectedStoreId = $state('');
   
   // Contact information
   let name = $state('');
@@ -79,6 +75,45 @@
   
   function handleDateSelect(date: string) {
     selectedDate = date;
+  }
+  
+  function handleStoreSelect(storeId: string) {
+    if (!storeId) {
+      // Clear selection
+      selectedStoreId = '';
+      name = '';
+      phone = '';
+      email = '';
+      contactMethod = 'email';
+      retrievalMethod = 'pickup';
+      addressLine1 = '';
+      addressLine2 = '';
+      city = '';
+      addressState = '';
+      zip = '';
+      return;
+    }
+    
+    selectedStoreId = storeId;
+    const store = data.stores.find(s => s.id === storeId);
+    
+    if (store) {
+      // Auto-fill contact information
+      name = store.name;
+      phone = store.phone || '';
+      contactMethod = 'phone';
+      
+      // Auto-set retrieval method to pickup for stores
+      retrievalMethod = 'pickup';
+      
+      // Parse and auto-fill address fields
+      const parsedAddress = parseAddress(store.address);
+      addressLine1 = parsedAddress.addressLine1;
+      city = parsedAddress.city;
+      addressState = parsedAddress.state;
+      zip = parsedAddress.zip;
+      addressLine2 = ''; // Clear any previous value
+    }
   }
   
   function addProductToCart(product: any) {
@@ -291,6 +326,29 @@
       
       {#if contactSectionExpanded}
         <div class="p-6 space-y-4">
+          <!-- Store Selection Dropdown -->
+          <div class="form-control">
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="store">Select Store (Optional)</label>
+            <select 
+              id="store" 
+              class="select select-bordered bg-gray-50 border-gray-300"
+              bind:value={selectedStoreId}
+              onchange={(e) => handleStoreSelect(e.currentTarget.value)}
+            >
+              <option value="">-- Manual Entry --</option>
+              {#if data.stores && data.stores.length > 0}
+                {#each data.stores as store}
+                  <option value={store.id}>{store.name}</option>
+                {/each}
+              {:else}
+                <option disabled>No stores available</option>
+              {/if}
+            </select>
+            {#if selectedStoreId}
+              <p class="text-xs text-blue-600 mt-1">Store information has been auto-filled. You can edit any field below.</p>
+            {/if}
+          </div>
+          
           <div class="form-control">
             <label class="block text-sm font-medium text-gray-700 mb-1" for="name">Full Name</label>
             <input 
@@ -567,10 +625,8 @@
                       <button 
                         class="btn btn-primary btn-sm"
                         onclick={() => addProductToCart(product)}
-                        disabled={!product.is_active}
-                        class:opacity-50={!product.is_active}
                       >
-                        {product.is_active ? 'Add' : 'Inactive'}
+                        Add
                       </button>
                     </div>
                     {#if !product.is_active}
