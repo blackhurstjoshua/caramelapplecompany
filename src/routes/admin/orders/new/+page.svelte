@@ -590,7 +590,7 @@
                       <input 
                         type="number" 
                         min="1" 
-                        class="input input-bordered input-sm w-20"
+                        class="input input-bordered input-sm w-20 bg-white"
                         value={item.quantity}
                         onchange={(e) => updateQuantity(item.product.id, parseInt(e.currentTarget.value))}
                       />
