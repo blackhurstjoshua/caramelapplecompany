@@ -7,7 +7,10 @@ import { Product } from '$lib/stores/product';
 const supabaseClient = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
 
 const getAllProducts = async (): Promise<Product[]> => {
-  const { data, error } = await supabaseClient.from('products').select('*').order('sort_order', { ascending: true });
+  const { data, error } = await supabaseClient
+    .from('products')
+    .select('*')
+    .order('sort_order', { ascending: true, nullsFirst: false }); // NULLs go to end
   if (error) throw error;
   return data;
 };
@@ -32,10 +35,17 @@ const updateProduct = async (product: any) => {
 
 const createProduct = async (product: any) => {
   // Get the max sort_order to put new product at the end
-  const { data: products, error: fetchError } = await supabaseClient.from('products').select('sort_order').order('sort_order', { ascending: false }).limit(1);
+  const { data: products, error: fetchError } = await supabaseClient
+    .from('products')
+    .select('sort_order')
+    .not('sort_order', 'is', null) // Exclude NULL values
+    .order('sort_order', { ascending: false })
+    .limit(1);
   if (fetchError) throw fetchError;
   
-  const maxSortOrder = products && products.length > 0 ? products[0].sort_order : 0;
+  const maxSortOrder = products && products.length > 0 && products[0].sort_order !== null 
+    ? products[0].sort_order 
+    : 0;
   
   // Convert camelCase to snake_case for database
   // Handle both formats (camelCase from Product class or snake_case from admin)
@@ -87,7 +97,7 @@ const getFeaturedApples = async (): Promise<Product[]> => {
     .select('*')
     .eq('is_active', true)
     .eq('featured', true)
-    .order('sort_order', { ascending: true });
+    .order('sort_order', { ascending: true, nullsFirst: false });
   if (error) throw error;
   
   // Convert to Product instances
@@ -99,7 +109,7 @@ const getActiveProducts = async (): Promise<Product[]> => {
     .from('products')
     .select('*')
     .eq('is_active', true)
-    .order('sort_order', { ascending: true });
+    .order('sort_order', { ascending: true, nullsFirst: false });
   if (error) throw error;
   
   // Convert to Product instances
@@ -136,38 +146,56 @@ const searchProductsByName = async (term: string): Promise<Array<{
 };
 
 /**
- * Swap the sort_order of two products
- * This is used for moving products up/down in the list
+ * Swap two products' positions in the sort order
+ * Uses a simple 3-step approach with NULL as temporary value
+ * Only makes 3 database calls regardless of how many products exist
  */
 const swapProductOrder = async (productId1: string, productId2: string) => {
-  // Get both products' current sort orders
+  // Step 1: Get both products' current sort_order values
   const { data: products, error: fetchError } = await supabaseClient
     .from('products')
     .select('id, sort_order')
     .in('id', [productId1, productId2]);
   
   if (fetchError) throw fetchError;
-  if (!products || products.length !== 2) throw new Error('Could not find both products');
+  if (!products || products.length !== 2) {
+    throw new Error('Could not find both products');
+  }
   
   const product1 = products.find(p => p.id === productId1);
   const product2 = products.find(p => p.id === productId2);
   
-  if (!product1 || !product2) throw new Error('Could not find both products');
+  if (!product1 || !product2) {
+    throw new Error('Could not find both products');
+  }
   
-  // Swap the sort orders
+  // Save the original values
+  const product1OriginalSort = product1.sort_order;
+  const product2OriginalSort = product2.sort_order;
+  
+  // Step 2: Set product1 to NULL (temporarily removes from order)
   const { error: error1 } = await supabase
     .from('products')
-    .update({ sort_order: product2.sort_order, updated_at: new Date().toISOString() })
+    .update({ sort_order: null, updated_at: new Date().toISOString() })
     .eq('id', productId1);
   
   if (error1) throw error1;
   
+  // Step 3: Set product2 to product1's original position
   const { error: error2 } = await supabase
     .from('products')
-    .update({ sort_order: product1.sort_order, updated_at: new Date().toISOString() })
+    .update({ sort_order: product1OriginalSort, updated_at: new Date().toISOString() })
     .eq('id', productId2);
   
   if (error2) throw error2;
+  
+  // Step 4: Set product1 to product2's original position
+  const { error: error3 } = await supabase
+    .from('products')
+    .update({ sort_order: product2OriginalSort, updated_at: new Date().toISOString() })
+    .eq('id', productId1);
+  
+  if (error3) throw error3;
   
   return { success: true };
 };

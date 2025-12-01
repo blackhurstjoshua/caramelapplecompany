@@ -12,6 +12,7 @@
   let editingIndex: number | null = null; // Track which product is being edited
   let isCreating = false; // Track if we're creating a new product
   let showInactive = true; // Toggle to show/hide inactive products
+  let isMoving = false; // Prevent multiple move operations at once
   
   // Computed filtered products
   $: filteredProducts = showInactive 
@@ -131,21 +132,26 @@
   }
   
   async function handleMoveUp(product: Product) {
+    // Prevent concurrent move operations
+    if (isMoving) return;
+    
     try {
+      isMoving = true;
+      
       const currentIndex = products.findIndex(p => p.id === product.id);
       if (currentIndex <= 0) return; // Already at the top
       
       const previousProduct = products[currentIndex - 1];
       
-      // Swap the sort orders in the database
+      // Swap in the database
       await swapProductOrder(product.id, previousProduct.id);
       
-      // Update local state by swapping positions
+      // Swap sortOrder values in local state
       const tempSortOrder = products[currentIndex].sortOrder;
       products[currentIndex].sortOrder = products[currentIndex - 1].sortOrder;
       products[currentIndex - 1].sortOrder = tempSortOrder;
       
-      // Swap the products in the array
+      // Swap positions in the array
       [products[currentIndex], products[currentIndex - 1]] = [products[currentIndex - 1], products[currentIndex]];
       
       // Trigger reactivity
@@ -153,27 +159,34 @@
     } catch (error) {
       console.error('Error moving product up:', error);
       alert('Failed to move product. Please try again.');
-      // Refresh products from server to ensure consistency
+      // Refresh from database on error to ensure consistency
       await refreshProducts();
+    } finally {
+      isMoving = false;
     }
   }
   
   async function handleMoveDown(product: Product) {
+    // Prevent concurrent move operations
+    if (isMoving) return;
+    
     try {
+      isMoving = true;
+      
       const currentIndex = products.findIndex(p => p.id === product.id);
       if (currentIndex >= products.length - 1) return; // Already at the bottom
       
       const nextProduct = products[currentIndex + 1];
       
-      // Swap the sort orders in the database
+      // Swap in the database
       await swapProductOrder(product.id, nextProduct.id);
       
-      // Update local state by swapping positions
+      // Swap sortOrder values in local state
       const tempSortOrder = products[currentIndex].sortOrder;
       products[currentIndex].sortOrder = products[currentIndex + 1].sortOrder;
       products[currentIndex + 1].sortOrder = tempSortOrder;
       
-      // Swap the products in the array
+      // Swap positions in the array
       [products[currentIndex], products[currentIndex + 1]] = [products[currentIndex + 1], products[currentIndex]];
       
       // Trigger reactivity
@@ -181,8 +194,10 @@
     } catch (error) {
       console.error('Error moving product down:', error);
       alert('Failed to move product. Please try again.');
-      // Refresh products from server to ensure consistency
+      // Refresh from database on error to ensure consistency
       await refreshProducts();
+    } finally {
+      isMoving = false;
     }
   }
   
@@ -234,8 +249,8 @@
     {#each filteredProducts as product, index}
       {@const isEditing = editingIndex !== null && products[editingIndex]?.id === product.id}
       {@const actualIndex = products.findIndex(p => p.id === product.id)}
-      {@const canMoveUp = actualIndex > 0}
-      {@const canMoveDown = actualIndex < products.length - 1}
+      {@const canMoveUp = !isMoving && actualIndex > 0}
+      {@const canMoveDown = !isMoving && actualIndex < products.length - 1}
       {#if isEditing}
         <EditProductCard 
           product={product} 
