@@ -278,7 +278,7 @@
     </p>
     <div class="flex flex-col sm:flex-row gap-4 justify-center">
       <a href="/order" class="btn btn-lg bg-white border-none text-xl font-bold px-8 hover:bg-gray-100 order-now-btn">
-        🍎 Order Now
+        🍏 Order Now
       </a>
       <a href="tel:8017877288" class="btn btn-lg btn-outline border-white text-white text-xl font-bold px-8 call-us-btn">
         📞 Call Us

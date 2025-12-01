@@ -26,8 +26,48 @@
   let showSearchModal = $state(false);
   let replacingItemId = $state<string | null>(null);
   
+  // Invoice generation state
+  let isGeneratingInvoice = $state(false);
+  let invoiceError = $state('');
+  
   function goBack() {
     goto('/admin/orders');
+  }
+  
+  async function generateInvoice() {
+    if (!orderId) return;
+    
+    isGeneratingInvoice = true;
+    invoiceError = '';
+    
+    try {
+      // Call the API endpoint to generate PDF
+      const response = await fetch(`/api/orders/${orderId}/invoice`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate invoice');
+      }
+      
+      // Get the PDF blob
+      const blob = await response.blob();
+      
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `invoice-${orderId.substring(0, 8)}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error generating invoice:', error);
+      invoiceError = 'Failed to generate invoice. Please try again.';
+    } finally {
+      isGeneratingInvoice = false;
+    }
   }
   
   function formatDate(dateString: string): string {
@@ -322,6 +362,21 @@
           </button>
         {:else}
           <button 
+            class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            onclick={generateInvoice}
+            disabled={isGeneratingInvoice}
+          >
+            {#if isGeneratingInvoice}
+              <span class="loading loading-spinner loading-xs"></span>
+              Generating...
+            {:else}
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Generate Invoice
+            {/if}
+          </button>
+          <button 
             class="bg-black hover:bg-gray-800 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
             onclick={startEdit}
           >
@@ -338,6 +393,15 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
       <span>{saveError}</span>
+    </div>
+  {/if}
+  
+  {#if invoiceError}
+    <div class="alert alert-error mb-6">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <span>{invoiceError}</span>
     </div>
   {/if}
   
@@ -716,7 +780,6 @@
           class="input input-bordered w-full bg-white text-gray-900"
           bind:value={searchQuery}
           oninput={handleSearchInput}
-          autofocus
         />
       </div>
       

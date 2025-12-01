@@ -6,6 +6,7 @@ interface Apple {
   featured: boolean;
   priceCents: number;
   isActive: boolean;
+  sortOrder: number;
   createdAt: string;
   updatedAt: string;
 
@@ -20,6 +21,7 @@ export class Product implements Apple {
   featured: boolean;
   priceCents: number;
   isActive: boolean;
+  sortOrder: number;
   createdAt: string;
   updatedAt: string;
   
@@ -33,6 +35,7 @@ export class Product implements Apple {
     this.featured = data.featured ?? data.featured;
     this.priceCents = data.priceCents ?? data.price_cents;
     this.isActive = data.isActive ?? data.is_active;
+    this.sortOrder = data.sortOrder ?? data.sort_order ?? 0;
     this.createdAt = data.createdAt || data.created_at;
     this.updatedAt = data.updatedAt || data.updated_at;
   }

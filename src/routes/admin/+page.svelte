@@ -2,7 +2,7 @@
 <div class="text-center py-16">
   <!-- Welcome Message -->
   <div class="mb-8">
-    <div class="text-6xl mb-4">🍎</div>
+    <div class="text-6xl mb-4">🍏</div>
     <h2 class="text-4xl font-bold mb-4 text-gray-900" style="font-family: 'Oswald', sans-serif; font-weight: 600; letter-spacing: 0.05em;">
       Welcome to Admin Dashboard
     </h2>

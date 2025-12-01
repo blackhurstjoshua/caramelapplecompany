@@ -2,11 +2,65 @@
   import DataTable from '$lib/components/DataTable.svelte';
   import type { TableColumn } from '$lib/types';
   import type { OrderWithCustomer } from '$lib/services/orders';
+  import { OrderService } from '$lib/services/orders';
   import type { PageData } from './$types';
   import { goto } from '$app/navigation';
   import { formatPrice } from '$lib/utils/currency';
   
-  export let data: PageData;
+  let { data }: { data: PageData } = $props();
+  
+  // All orders from initial load
+  let allOrders = $state<OrderWithCustomer[]>(data.orders || []);
+  
+  // Search state
+  let searchQuery = $state('');
+  let isSearching = $state(false);
+  let searchResults = $state<OrderWithCustomer[]>([]);
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  
+  // Derived orders - either all orders or search results
+  let orders = $derived(searchQuery.trim().length >= 3 ? searchResults : allOrders);
+  
+  async function handleSearchInput() {
+    // Clear existing timer
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+    
+    const query = searchQuery.trim();
+    
+    // Reset if query is too short
+    if (query.length < 3) {
+      searchResults = [];
+      isSearching = false;
+      return;
+    }
+    
+    // Set searching state immediately
+    isSearching = true;
+    
+    // Debounce for 500ms (half a second)
+    debounceTimer = setTimeout(async () => {
+      try {
+        const results = await OrderService.searchOrders(query);
+        searchResults = results;
+      } catch (error) {
+        console.error('Error searching orders:', error);
+        searchResults = [];
+      } finally {
+        isSearching = false;
+      }
+    }, 500);
+  }
+  
+  function clearSearch() {
+    searchQuery = '';
+    searchResults = [];
+    isSearching = false;
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+  }
   
   const columns: TableColumn[] = [
     { key: 'customer.name', label: 'Customer' },
@@ -45,8 +99,43 @@
     }
   }
   
+  // Export to CSV
+  let isExporting = $state(false);
+  
+  async function exportToCSV() {
+    try {
+      isExporting = true;
+      const response = await fetch('/api/admin/orders/export');
+      
+      if (!response.ok) {
+        throw new Error('Failed to export orders');
+      }
+      
+      // Get the filename from Content-Disposition header
+      const contentDisposition = response.headers.get('Content-Disposition');
+      const filenameMatch = contentDisposition?.match(/filename="(.+)"/);
+      const filename = filenameMatch ? filenameMatch[1] : 'orders_export.csv';
+      
+      // Download the file
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error exporting orders:', error);
+      alert('Failed to export orders. Please try again.');
+    } finally {
+      isExporting = false;
+    }
+  }
+  
   // Process data to format dates, currency, and status
-  $: processedOrders = (data.orders || []).map(order => ({
+  let processedOrders = $derived((orders || []).map(order => ({
     ...order,
     order_date: formatDate(order.order_date),
     delivery_date: formatDate(order.delivery_date),
@@ -57,10 +146,10 @@
       ...order.customer,
       email: order.customer.email || 'No email'
     }
-  }));
+  })));
   
-  $: loading = !data.orders;
-  $: hasError = !!data.error;
+  let loading = $derived(!data.orders);
+  let hasError = $derived(!!data.error);
 </script>
 
 <div class="p-6">
@@ -82,12 +171,27 @@
 
   <div class="bg-white rounded-lg shadow-sm border border-gray-200">
     <div class="p-4 border-b border-gray-200">
-      <div class="flex justify-between items-center">
+      <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-semibold text-gray-800">All Orders</h2>
         <div class="flex items-center gap-4">
           {#if !loading && !hasError}
             <span class="text-sm text-gray-500">{processedOrders.length} orders</span>
           {/if}
+          <button 
+            class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center gap-2"
+            onclick={exportToCSV}
+            disabled={isExporting || loading}
+          >
+            {#if isExporting}
+              <span class="loading loading-spinner loading-sm"></span>
+              Exporting...
+            {:else}
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Export CSV
+            {/if}
+          </button>
           <button 
             class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
             onclick={() => goto('/admin/orders/new')}
@@ -96,6 +200,37 @@
           </button>
         </div>
       </div>
+      
+      <!-- Search Bar -->
+      <div class="relative w-full">
+        <input 
+          type="text" 
+          placeholder="Search by customer name, email, or phone (min 3 characters)..." 
+          class="input w-full bg-gray-50 text-gray-900 pr-20 border border-gray-300 focus:border-green-500 focus:ring-green-500 placeholder:text-gray-500"
+          bind:value={searchQuery}
+          oninput={handleSearchInput}
+        />
+        {#if isSearching}
+          <div class="absolute right-3 top-1/2 -translate-y-1/2">
+            <span class="loading loading-spinner loading-sm"></span>
+          </div>
+        {:else if searchQuery}
+          <button 
+            class="absolute right-3 top-1/2 -translate-y-1/2 btn btn-ghost btn-sm btn-circle"
+            onclick={clearSearch}
+            title="Clear search"
+          >
+            ✕
+          </button>
+        {/if}
+      </div>
+      {#if searchQuery.trim().length > 0 && searchQuery.trim().length < 3}
+        <p class="text-sm text-gray-500 mt-2">Type at least 3 characters to search</p>
+      {:else if searchQuery.trim().length >= 3 && !isSearching}
+        <p class="text-sm text-gray-600 mt-2">
+          {processedOrders.length === 0 ? 'No orders found' : `Showing ${processedOrders.length} result${processedOrders.length !== 1 ? 's' : ''}`}
+        </p>
+      {/if}
     </div>
     
     <DataTable 

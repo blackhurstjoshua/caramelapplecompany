@@ -59,7 +59,7 @@
     <!-- Bottom section -->
     <div class="border-t border-gray-600 pt-8 flex flex-col md:flex-row justify-between items-center">
       <div class="flex items-center mb-4 md:mb-0">
-        <span class="text-2xl mr-2">🍎</span>
+        <span class="text-2xl mr-2">🍏</span>
         <span class="font-bold text-2xl text-white" style="font-family: 'Oswald', sans-serif;">Caramel Apple Co.</span>
       </div>
       

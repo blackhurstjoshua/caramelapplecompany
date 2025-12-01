@@ -161,7 +161,7 @@
         <div class="hidden lg:flex items-center justify-center bg-gradient-to-br from-amber-100 to-orange-200 p-12 rounded-r-4xl">
           {#if rightSideContent === 'admin'}
             <div class="text-center max-w-md">
-              <div class="text-6xl mb-6">🍎</div>
+              <div class="text-6xl mb-6">🍏</div>
               <h2 class="text-2xl font-bold mb-4 text-gray-900" style="font-family: 'Oswald', sans-serif; font-weight: 600;">
                 Admin Portal
               </h2>

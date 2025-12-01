@@ -131,7 +131,7 @@
     <!-- Empty state (if no products) -->
     {#if products.length === 0}
       <div class="text-center py-12">
-        <div class="text-6xl mb-4">🍎</div>
+        <div class="text-6xl mb-4">🍏</div>
         <h2 class="text-2xl font-bold text-black mb-2">
           {searchQuery.trim().length >= 3 ? 'No products found' : 'No products available'}
         </h2>

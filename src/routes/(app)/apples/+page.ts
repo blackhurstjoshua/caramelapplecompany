@@ -1,11 +1,16 @@
 import type { PageLoad } from './$types';
+import { getActiveProducts } from '$lib/services/products';
 
-export const load = (async () => {
-  return {
-    id: '1234',
-    name: 'Server-Side Apple',
-    description: 'A delicious fruit',
-    price: 1.5,
-    image: 'https://example.com/apple.jpg',
-  };
-}) satisfies PageLoad;
+export const load: PageLoad = async () => {
+  try {
+    const products = await getActiveProducts();
+    return {
+      products
+    }
+  } catch (error) {
+    console.error("Error loading products: ", error);
+    return {
+      products: []
+    };
+  }
+};
