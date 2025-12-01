@@ -3,6 +3,7 @@
   import { Product } from '../stores/product';
   import { cart } from '../stores/cart';
   import { getImageUrl } from '../services/images';
+  import { formatDollars } from '../utils/currency';
 
   export let product: Product;
   export let isReversed: boolean = false;
@@ -28,7 +29,7 @@
         
         <div class="flex items-center gap-6 mb-8">
           <span class="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">
-            ${product.toDollars()}
+            {formatDollars(product.toDollars())}
           </span>
           {#if product.featured}
             <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-purple-500 to-pink-500 text-white">
@@ -55,7 +56,7 @@
           {:else}
             <!-- Placeholder for product image -->
             <div class="w-full h-full flex flex-col items-center justify-center text-center p-8">
-              <div class="text-8xl mb-4">🍎</div>
+              <div class="text-8xl mb-4">🍏</div>
               <h3 class="text-2xl font-bold text-gray-800 mb-2">{product.name}</h3>
               <p class="text-gray-600">Handcrafted with love</p>
             </div>

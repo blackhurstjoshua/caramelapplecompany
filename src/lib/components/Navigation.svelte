@@ -105,7 +105,7 @@
       <!-- Drawer header -->
       <div class="flex items-center justify-between p-4 border-b">
         <div class="flex items-center">
-          <span class="text-2xl mr-2">🍎</span>
+          <span class="text-2xl mr-2">🍏</span>
           <span class="text-lg font-semibold text-gray-900" style="font-family: 'Oswald', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-weight: 400; letter-spacing: 0.1em;">Caramel Apple Co.</span>
         </div>
         <button onclick={closeDrawer} class="btn btn-sm" aria-label="Close navigation menu">

@@ -122,7 +122,7 @@
             <span class="text-sm text-gray-600">500+ Happy Customers</span>
           </div>
           <div class="flex items-center space-x-2">
-            <span class="text-2xl">🍎</span>
+            <span class="text-2xl">🍏</span>
             <span class="text-sm text-gray-600">Handcrafted Daily</span>
           </div>
           <div class="flex items-center space-x-2">

@@ -134,7 +134,7 @@
       <!-- Sidebar Header -->
       <div class="flex items-center justify-between p-6 border-b border-gray-200">
         <div class="flex items-center">
-          <span class="text-3xl mr-3">🍎</span>
+          <span class="text-3xl mr-3">🍏</span>
           <span class="text-xl font-semibold text-gray-900" style="font-family: 'Oswald', sans-serif;">Admin Portal</span>
         </div>
         <button

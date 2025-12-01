@@ -285,25 +285,40 @@ export class OrderService {
   }
 
   /**
-   * Search orders by customer name or order ID
+   * Search orders by customer name, email, or phone
    */
   static async searchOrders(query: string): Promise<OrderWithCustomer[]> {
-    const { data, error } = await supabaseClient
-      .from('orders')
-      .select(`
-        *,
-        customer:customers (
-          id,
-          name,
-          email,
-          phone
-        )
-      `)
-      .or(`id.ilike.%${query}%,customers.name.ilike.%${query}%`)
-      .order('order_date', { ascending: false });
+    const searchTerm = `%${query}%`;
+    
+    // Search customers by name, email, or phone
+    const { data: customersData } = await supabaseClient
+      .from('customers')
+      .select('id')
+      .or(`name.ilike.${searchTerm},email.ilike.${searchTerm},phone.ilike.${searchTerm}`);
 
-    if (error) throw error;
-    return data || [];
+    const customerIds = customersData?.map(c => c.id) || [];
+    
+    // If customers found, fetch their orders
+    if (customerIds.length > 0) {
+      const { data, error } = await supabaseClient
+        .from('orders')
+        .select(`
+          *,
+          customer:customers (
+            id,
+            name,
+            email,
+            phone
+          )
+        `)
+        .in('customer_id', customerIds)
+        .order('order_date', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    }
+    
+    return [];
   }
 
   /**
