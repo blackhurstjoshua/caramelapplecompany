@@ -99,6 +99,41 @@
     }
   }
   
+  // Export to CSV
+  let isExporting = $state(false);
+  
+  async function exportToCSV() {
+    try {
+      isExporting = true;
+      const response = await fetch('/api/admin/orders/export');
+      
+      if (!response.ok) {
+        throw new Error('Failed to export orders');
+      }
+      
+      // Get the filename from Content-Disposition header
+      const contentDisposition = response.headers.get('Content-Disposition');
+      const filenameMatch = contentDisposition?.match(/filename="(.+)"/);
+      const filename = filenameMatch ? filenameMatch[1] : 'orders_export.csv';
+      
+      // Download the file
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error exporting orders:', error);
+      alert('Failed to export orders. Please try again.');
+    } finally {
+      isExporting = false;
+    }
+  }
+  
   // Process data to format dates, currency, and status
   let processedOrders = $derived((orders || []).map(order => ({
     ...order,
@@ -142,6 +177,21 @@
           {#if !loading && !hasError}
             <span class="text-sm text-gray-500">{processedOrders.length} orders</span>
           {/if}
+          <button 
+            class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center gap-2"
+            onclick={exportToCSV}
+            disabled={isExporting || loading}
+          >
+            {#if isExporting}
+              <span class="loading loading-spinner loading-sm"></span>
+              Exporting...
+            {:else}
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Export CSV
+            {/if}
+          </button>
           <button 
             class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
             onclick={() => goto('/admin/orders/new')}
