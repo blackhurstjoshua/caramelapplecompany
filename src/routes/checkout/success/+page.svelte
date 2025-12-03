@@ -82,9 +82,9 @@
             <div class="flex items-start space-x-3">
               <div class="flex-shrink-0 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mt-1">
                 <span class="text-white text-sm font-bold">3</span>
-                <div>
-                  <p class="text-gray-700"><strong>Preparation:</strong> We'll start handcrafting your delicious caramel apples fresh.</p>
-                </div>
+              </div>
+              <div>
+                <p class="text-gray-700"><strong>Preparation:</strong> We'll start handcrafting your delicious caramel apples fresh.</p>
               </div>
             </div>
           </div>

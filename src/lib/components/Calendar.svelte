@@ -6,13 +6,7 @@
   export let selectedDate: string | null = null;
   export let currentMonth: Date = new Date();
   export let retrievalMethod: 'pickup' | 'delivery' | null = null; // Filter dates based on retrieval method
-  
-  // Debug logging
-  // $: {
-  //   console.log('Calendar received dateAvailability:', dateAvailability);
-  //   console.log('Number of availability entries:', dateAvailability.length);
-  // }
-  
+ 
   // Callback props instead of event dispatcher
   export let onDateSelect: ((date: string) => void) | undefined = undefined;
   export let onScheduleUpdate: ((schedule: ScheduleBlock[]) => void) | undefined = undefined;
@@ -346,11 +340,11 @@
   }
   
   .calendar-day-empty {
-    height: 60px;
+    min-height: 60px;
   }
   
   .calendar-day {
-    height: 60px;
+    min-height: 60px;
     border-radius: 8px;
     display: flex;
     flex-direction: column;
@@ -361,6 +355,20 @@
     position: relative;
     cursor: pointer;
     padding: 6px 4px;
+  }
+  
+  /* Mobile: increase padding and let content determine height dynamically */
+  @media (max-width: 640px) {
+    .calendar-day {
+      padding: 8px 4px 10px 4px;
+      min-height: 60px;
+      height: auto;
+    }
+    
+    .availability-icon {
+      line-height: 1.3;
+      text-align: center;
+    }
   }
   
   .calendar-day:not(.past):hover {
