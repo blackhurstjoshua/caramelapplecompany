@@ -1,11 +1,11 @@
 import type { RequestEvent } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
 import Stripe from 'stripe';
-import { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import { CheckoutService, type CheckoutRequest, type CheckoutItem } from '$lib/services/checkout';
 
 // Initialize Stripe with latest API version
-const stripe = new Stripe(STRIPE_SECRET_KEY, {
+const stripe = new Stripe(env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-09-30.clover'
 });
 
@@ -30,7 +30,7 @@ export const POST = async ({ request }: RequestEvent) => {
 
   try {
     // Verify webhook signature
-    event = stripe.webhooks.constructEvent(body, signature, STRIPE_WEBHOOK_SECRET);
+    event = stripe.webhooks.constructEvent(body, signature, env.STRIPE_WEBHOOK_SECRET!);
     console.log(`📨 Webhook received: ${event.type}`);
   } catch (err) {
     console.error('❌ Webhook signature verification failed:', err);
