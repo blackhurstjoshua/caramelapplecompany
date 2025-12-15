@@ -400,10 +400,7 @@
   @media print {
     .invoice-container {
       padding: 0.5in;
-    }
-    
-    @page {
-      margin: 0.5in;
+      page-break-after: avoid;
     }
   }
 </style>

@@ -32,7 +32,6 @@
 		"@tailwindcss/postcss": "^4.1.11",
 		"@tailwindcss/vite": "^4.1.11",
 		"dotenv": "^17.2.3",
-		"playwright": "^1.57.0",
 		"simple-icons": "^15.20.0",
 		"stripe": "^19.1.0"
 	}

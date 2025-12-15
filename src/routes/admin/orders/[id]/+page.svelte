@@ -34,40 +34,17 @@
     goto('/admin/orders');
   }
   
-  async function generateInvoice() {
+  function generateInvoice() {
     if (!orderId) return;
     
-    isGeneratingInvoice = true;
-    invoiceError = '';
+    // Generate a simple token for invoice access
+    const timestamp = Date.now();
+    const tokenData = `${orderId}:${timestamp}`;
+    const token = btoa(tokenData);
     
-    try {
-      // Call the API endpoint to generate PDF
-      const response = await fetch(`/api/orders/${orderId}/invoice`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to generate invoice');
-      }
-      
-      // Get the PDF blob
-      const blob = await response.blob();
-      
-      // Create a download link
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `invoice-${orderId.substring(0, 8)}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      
-      // Clean up
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error('Error generating invoice:', error);
-      invoiceError = 'Failed to generate invoice. Please try again.';
-    } finally {
-      isGeneratingInvoice = false;
-    }
+    // Open invoice in new window - user can print/save as PDF from browser
+    const invoiceUrl = `/invoice/${orderId}?token=${token}`;
+    window.open(invoiceUrl, '_blank');
   }
   
   function formatDate(dateString: string): string {
