@@ -30,6 +30,11 @@
   let isGeneratingInvoice = $state(false);
   let invoiceError = $state('');
   
+  // Delete confirmation state
+  let showDeleteConfirm = $state(false);
+  let isDeleting = $state(false);
+  let deleteError = $state('');
+  
   function goBack() {
     goto('/admin/orders');
   }
@@ -305,6 +310,33 @@
       isSaving = false;
     }
   }
+  
+  function openDeleteConfirm() {
+    showDeleteConfirm = true;
+    deleteError = '';
+  }
+  
+  function closeDeleteConfirm() {
+    showDeleteConfirm = false;
+    deleteError = '';
+  }
+  
+  async function confirmDelete() {
+    if (!orderId) return;
+    
+    isDeleting = true;
+    deleteError = '';
+    
+    try {
+      await OrderService.deleteOrder(orderId);
+      // Navigate back to orders list after successful deletion
+      goto('/admin/orders');
+    } catch (error) {
+      console.error('Error deleting order:', error);
+      deleteError = error instanceof Error ? error.message : 'Failed to delete order. Please try again.';
+      isDeleting = false;
+    }
+  }
 </script>
 
 <div class="p-6">
@@ -358,6 +390,12 @@
             onclick={startEdit}
           >
             Edit
+          </button>
+          <button 
+            class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+            onclick={openDeleteConfirm}
+          >
+            Delete
           </button>
         {/if}
       </div>
@@ -805,6 +843,48 @@
       <div class="modal-action">
         <button class="btn" onclick={() => { showSearchModal = false; searchQuery = ''; searchResults = []; }}>
           Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}
+
+<!-- Delete Confirmation Modal -->
+{#if showDeleteConfirm}
+  <div class="modal modal-open">
+    <div class="modal-box bg-white">
+      <h3 class="font-bold text-lg text-black mb-4">
+        Delete Order?
+      </h3>
+      
+      <p class="text-gray-700 mb-4">
+        Are you sure you want to delete this order? This action cannot be undone and will permanently remove the order and all its items from the database.
+      </p>
+      
+      {#if deleteError}
+        <div class="alert alert-error mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>{deleteError}</span>
+        </div>
+      {/if}
+      
+      <div class="modal-action">
+        <button 
+          class="btn btn-ghost"
+          onclick={closeDeleteConfirm}
+          disabled={isDeleting}
+        >
+          Cancel
+        </button>
+        <button 
+          class="btn btn-error"
+          class:loading={isDeleting}
+          onclick={confirmDelete}
+          disabled={isDeleting}
+        >
+          {isDeleting ? 'Deleting...' : 'Delete Order'}
         </button>
       </div>
     </div>
