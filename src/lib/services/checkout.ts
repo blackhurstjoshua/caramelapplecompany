@@ -88,10 +88,11 @@ export class CheckoutService {
       const orderId = await OrderService.createOrder({
         customer_id: customerId,
         delivery_date: request.order.delivery_date,
-        total_cents: totals.total_cents,
-        subtotal_cents: totals.subtotal_cents,
+        total_cents: totals.totalCents,
+        subtotal_cents: totals.subtotalCents,
+        tax_cents: totals.taxCents,
         retrieval_method: request.order.retrieval_method,
-        delivery_fee_cents: totals.delivery_fee_cents,
+        delivery_fee_cents: totals.deliveryFeeCents,
         payment_method: request.order.payment_method,
         address: request.order.address,
         customizations: request.order.customizations
@@ -186,20 +187,16 @@ export class CheckoutService {
   }
 
   /**
-   * Calculate order totals
+   * Calculate order totals including tax
    */
   private static calculateTotals(items: Array<CheckoutItem & { price_cents: number }>, retrievalMethod: string) {
     const subtotal_cents = items.reduce((sum, item) => 
       sum + (item.price_cents * item.quantity), 0);
     
     const delivery_fee_cents = retrievalMethod === 'delivery' ? 1000 : 0; // $10.00 in cents
-    const total_cents = subtotal_cents + delivery_fee_cents;
-
-    return {
-      subtotal_cents,
-      delivery_fee_cents,
-      total_cents
-    };
+    
+    // Use OrderService to calculate tax and total
+    return OrderService.calculateOrderTotals(subtotal_cents, delivery_fee_cents);
   }
 
 }

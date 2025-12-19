@@ -14,6 +14,7 @@ AS $$
 DECLARE
   v_subtotal INTEGER;
   v_delivery_fee INTEGER;
+  v_tax INTEGER;
   v_result JSONB;
   v_item JSONB;
   v_id UUID;
@@ -92,9 +93,13 @@ BEGIN
   FROM orders
   WHERE id = p_order_id;
 
+  -- Calculate tax (8%)
+  v_tax := ROUND(v_subtotal * 0.08);
+
   UPDATE orders
   SET subtotal_cents = v_subtotal,
-      total_cents = v_subtotal + v_delivery_fee,
+      tax_cents = v_tax,
+      total_cents = v_subtotal + v_delivery_fee + v_tax,
       updated_at = NOW()
   WHERE id = p_order_id;
 

@@ -236,8 +236,12 @@
     return editedItems.reduce((sum, item) => sum + (item.quantity * item.unit_price_cents), 0);
   }
   
+  function calculateTax(): number {
+    return OrderService.calculateTax(calculateSubtotal());
+  }
+  
   function calculateTotal(): number {
-    return calculateSubtotal() + (editedOrder?.delivery_fee_cents || 0);
+    return calculateSubtotal() + (editedOrder?.delivery_fee_cents || 0) + calculateTax();
   }
   
   async function saveEdit() {
@@ -634,6 +638,10 @@
                     <td colspan="2" class="font-bold text-black">{formatPrice(editedOrder.delivery_fee_cents)}</td>
                   </tr>
                 {/if}
+                <tr>
+                  <td colspan="3" class="text-right font-medium text-black">Tax (8%):</td>
+                  <td colspan="2" class="font-bold text-black">{formatPrice(calculateTax())}</td>
+                </tr>
                 <tr class="border-t">
                   <td colspan="3" class="text-right font-bold text-lg text-black">Total:</td>
                   <td colspan="2" class="font-bold text-lg text-black">{formatPrice(calculateTotal())}</td>
@@ -680,6 +688,10 @@
                     <td class="font-bold text-black">{formatPrice(order.delivery_fee_cents)}</td>
                   </tr>
                 {/if}
+                <tr>
+                  <td colspan="3" class="text-right font-medium text-black">Tax (8%):</td>
+                  <td class="font-bold text-black">{formatPrice(order.tax_cents)}</td>
+                </tr>
                 <tr class="border-t">
                   <td colspan="3" class="text-right font-bold text-lg text-black">Total:</td>
                   <td class="font-bold text-lg text-black">{formatPrice(order.total_cents)}</td>

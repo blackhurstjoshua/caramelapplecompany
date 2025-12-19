@@ -123,12 +123,18 @@
     
     <div class="subtotals">
       <div class="subtotal-row">
-        <span class="subtotal-label">Taxes</span>
-        <span class="subtotal-value">$0.00</span>
+        <span class="subtotal-label">Subtotal</span>
+        <span class="subtotal-value">{formatPrice(order.subtotal_cents)}</span>
       </div>
+      {#if order.delivery_fee_cents > 0}
+        <div class="subtotal-row">
+          <span class="subtotal-label">Delivery Fee</span>
+          <span class="subtotal-value">{formatPrice(order.delivery_fee_cents)}</span>
+        </div>
+      {/if}
       <div class="subtotal-row">
-        <span class="subtotal-label">Total</span>
-        <span class="subtotal-value">{formatPrice(order.total_cents)}</span>
+        <span class="subtotal-label">Tax (8%)</span>
+        <span class="subtotal-value">{formatPrice(order.tax_cents)}</span>
       </div>
       <div class="amount-due-row">
         <span class="amount-label">Amount due</span>

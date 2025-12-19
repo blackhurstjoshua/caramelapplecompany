@@ -57,7 +57,8 @@
   // Calculations
   let deliveryFee = $derived(retrievalMethod === 'delivery' ? 1000 : 0); // 1000 cents = $10
   let subtotal = $derived(cartItems.reduce((sum: number, item: CartItem) => sum + (item.product.priceCents * item.quantity), 0));
-  let total = $derived(subtotal + deliveryFee);
+  let tax = $derived(OrderService.calculateTax(subtotal));
+  let total = $derived(subtotal + deliveryFee + tax);
   
   // Convert DateAvailability to ScheduleBlock format for Calendar component
   let schedule = $derived((data?.dateAvailability || []).map((availability: DateAvailability) => ({
@@ -251,6 +252,7 @@
         status: 'pending',
         total_cents: total,
         subtotal_cents: subtotal,
+        tax_cents: tax,
         retrieval_method: retrievalMethod,
         delivery_fee_cents: deliveryFee,
         payment_method: 'pickup', // Admin orders are always pay on pickup/delivery
@@ -675,6 +677,10 @@
               <span>{formatPrice(deliveryFee)}</span>
             </div>
           {/if}
+          <div class="flex justify-between">
+            <span>Tax (8%)</span>
+            <span>{formatPrice(tax)}</span>
+          </div>
           <div class="flex justify-between font-semibold text-lg border-t pt-2">
             <span>Total</span>
             <span>{formatPrice(total)}</span>

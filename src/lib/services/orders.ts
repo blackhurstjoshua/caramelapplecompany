@@ -16,6 +16,7 @@ export interface Order {
   status: 'pending' | 'processing' | 'completed' | 'cancelled' | 'refund_due';
   total_cents: number;
   subtotal_cents: number;
+  tax_cents: number;
   retrieval_method: 'pickup' | 'delivery';
   delivery_fee_cents: number;
   payment_method: 'pickup' | 'stripe';
@@ -72,6 +73,7 @@ export interface CreateOrderData {
   status?: 'pending' | 'processing' | 'completed' | 'cancelled' | 'refund_due';
   total_cents: number;
   subtotal_cents: number;
+  tax_cents: number;
   retrieval_method: 'pickup' | 'delivery';
   delivery_fee_cents: number;
   payment_method: 'pickup' | 'stripe';
@@ -96,6 +98,34 @@ export interface OrderResult {
  * Order service - handles all order CRUD operations
  */
 export class OrderService {
+  // Default tax rate (8%)
+  private static readonly DEFAULT_TAX_RATE = 0.075;
+
+  /**
+   * Calculate tax amount based on subtotal
+   */
+  static calculateTax(subtotalCents: number, taxRate: number = OrderService.DEFAULT_TAX_RATE): number {
+    return Math.round(subtotalCents * taxRate);
+  }
+
+  /**
+   * Calculate complete order totals including tax
+   */
+  static calculateOrderTotals(
+    subtotalCents: number,
+    deliveryFeeCents: number,
+    taxRate: number = OrderService.DEFAULT_TAX_RATE
+  ): { subtotalCents: number; deliveryFeeCents: number; taxCents: number; totalCents: number } {
+    const taxCents = this.calculateTax(subtotalCents, taxRate);
+    const totalCents = subtotalCents + deliveryFeeCents + taxCents;
+    
+    return {
+      subtotalCents,
+      deliveryFeeCents,
+      taxCents,
+      totalCents
+    };
+  }
 
   /**
    * Get all orders with customer info (for admin orders list)
@@ -215,6 +245,7 @@ export class OrderService {
         status: orderData.status || 'pending',
         total_cents: orderData.total_cents,
         subtotal_cents: orderData.subtotal_cents,
+        tax_cents: orderData.tax_cents,
         retrieval_method: orderData.retrieval_method,
         delivery_fee_cents: orderData.delivery_fee_cents,
         payment_method: orderData.payment_method,

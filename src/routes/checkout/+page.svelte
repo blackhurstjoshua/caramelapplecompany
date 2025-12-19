@@ -32,7 +32,8 @@
 
   $: deliveryFee = retrievalMethod === 'delivery' ? 10 : 0; // TODO: Integrate Google Maps distance calc here
   $: subtotal = $cartTotal;
-  $: total = subtotal + deliveryFee;
+  $: tax = subtotal * 0.08; // 8% tax
+  $: total = subtotal + deliveryFee + tax;
 
   const steps = [
     { number: 1, title: 'Order Summary' },
@@ -256,6 +257,10 @@
                   <span>Delivery Fee</span>
                   <span>{deliveryFee > 0 ? `$${deliveryFee.toFixed(2)}` : 'TBD'}</span>
                 </div>
+                <div class="flex justify-between text-gray-700 mb-2">
+                  <span>Tax (8%)</span>
+                  <span>${tax.toFixed(2)}</span>
+                </div>
                 <div class="flex justify-between text-xl font-bold text-black">
                   <span>Total</span>
                   <span>${total.toFixed(2)}</span>
@@ -433,6 +438,10 @@
                   <span>${deliveryFee.toFixed(2)}</span>
                 </div>
               {/if}
+              <div class="flex justify-between">
+                <span>Tax (8%)</span>
+                <span>${tax.toFixed(2)}</span>
+              </div>
               <div class="flex justify-between font-semibold text-lg border-t pt-2">
                 <span>Total</span>
                 <span>${total.toFixed(2)}</span>
