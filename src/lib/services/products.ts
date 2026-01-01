@@ -16,15 +16,16 @@ const getAllProducts = async (): Promise<Product[]> => {
 };
 
 const updateProduct = async (product: any) => {
-  // Convert camelCase to snake_case for database
+  // Product data is already in snake_case format from the caller
+  // Just add the updated_at timestamp
   const dbProduct = {
     name: product.name,
     description: product.description,
-    image_path: product.imagePath,
+    image_path: product.image_path,
     featured: product.featured,
-    price_cents: product.priceCents,
-    is_active: product.isActive,
-    sort_order: product.sortOrder ?? product.sort_order,
+    price_cents: product.price_cents,
+    is_active: product.is_active,
+    sort_order: product.sort_order,
     updated_at: new Date().toISOString()
   };
   
