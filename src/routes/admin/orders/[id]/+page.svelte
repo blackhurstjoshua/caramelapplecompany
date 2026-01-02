@@ -18,6 +18,7 @@
   let deletedItemIds = $state<string[]>([]);
   let isSaving = $state(false);
   let saveError = $state('');
+  let applyTax = $state(true);
   
   // Product search state
   let searchQuery = $state('');
@@ -117,6 +118,8 @@
     }));
     
     deletedItemIds = [];
+    // Check if order has tax applied
+    applyTax = order.tax_cents > 0;
     isEditMode = true;
     saveError = '';
   }
@@ -125,6 +128,7 @@
     editedOrder = null;
     editedItems = [];
     deletedItemIds = [];
+    applyTax = true;
     isEditMode = false;
     saveError = '';
     showSearchModal = false;
@@ -237,6 +241,7 @@
   }
   
   function calculateTax(): number {
+    if (!applyTax) return 0;
     return OrderService.calculateTax(calculateSubtotal());
   }
   
@@ -259,7 +264,8 @@
         payment_method: editedOrder.payment_method,
         customizations: editedOrder.customizations,
         address: editedOrder.address,
-        delivery_fee_cents: editedOrder.delivery_fee_cents
+        delivery_fee_cents: editedOrder.delivery_fee_cents,
+        tax_cents: calculateTax() // Include explicit tax amount (0 if tax is disabled)
       };
       
       // Prepare item operations
@@ -528,6 +534,17 @@
                 />
               </div>
             </div>
+            <div>
+              <div class="text-sm font-medium text-gray-500 mb-2">Tax Settings</div>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  class="checkbox checkbox-sm"
+                  bind:checked={applyTax}
+                />
+                <span class="text-gray-900">Apply tax (8%)</span>
+              </label>
+            </div>
           {/if}
         </div>
       </div>
@@ -639,7 +656,9 @@
                   </tr>
                 {/if}
                 <tr>
-                  <td colspan="3" class="text-right font-medium text-black">Tax (8%):</td>
+                  <td colspan="3" class="text-right font-medium text-black">
+                    Tax (8%){#if !applyTax}<span class="text-gray-500 text-sm ml-1">(Excluded)</span>{/if}:
+                  </td>
                   <td colspan="2" class="font-bold text-black">{formatPrice(calculateTax())}</td>
                 </tr>
                 <tr class="border-t">

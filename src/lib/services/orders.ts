@@ -395,4 +395,5 @@ export type OrderUpdatesPayload = Partial<{
   address: any;
   customizations: string | null;
   delivery_fee_cents: number;
+  tax_cents: number; // Optional: override automatic tax calculation
 }>;

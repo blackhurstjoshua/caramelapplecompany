@@ -93,8 +93,14 @@ BEGIN
   FROM orders
   WHERE id = p_order_id;
 
-  -- Calculate tax (8%)
-  v_tax := ROUND(v_subtotal * 0.08);
+  -- Calculate tax (8%) - can be overridden by p_order_updates
+  IF p_order_updates ? 'tax_cents' THEN
+    -- Use explicitly provided tax value (allows admin to set to 0 or custom amount)
+    v_tax := COALESCE((p_order_updates->>'tax_cents')::integer, 0);
+  ELSE
+    -- Default: calculate 8% tax
+    v_tax := ROUND(v_subtotal * 0.08);
+  END IF;
 
   UPDATE orders
   SET subtotal_cents = v_subtotal,
