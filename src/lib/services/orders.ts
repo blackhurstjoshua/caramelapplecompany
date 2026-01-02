@@ -99,7 +99,7 @@ export interface OrderResult {
  */
 export class OrderService {
   // Default tax rate (8%)
-  private static readonly DEFAULT_TAX_RATE = 0.075;
+  private static readonly DEFAULT_TAX_RATE = 0.08;
 
   /**
    * Calculate tax amount based on subtotal
