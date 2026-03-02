@@ -64,10 +64,10 @@
       </div>
       
       <div class="text-sm text-gray-300 text-center md:text-right">
-        <p class="text-gray-300">&copy; 2025 Caramel Apple Co. All rights reserved.</p>
+        <p class="text-gray-300">&copy; 2026 Caramel Apple Co. All rights reserved.</p>
         <div class="flex flex-wrap justify-center md:justify-end gap-4 mt-2">
-          <a href="/terms" class="footer-link transition-colors duration-200 text-gray-300">Terms of Service</a>
-          <a href="/privacy" class="footer-link transition-colors duration-200 text-gray-300">Privacy Policy</a>
+          <a href="/terms-and-conditions" class="footer-link transition-colors duration-200 text-gray-300">Terms &amp; Conditions</a>
+          <a href="/privacy-policy" class="footer-link transition-colors duration-200 text-gray-300">Privacy Policy</a>
           <a href="/accessibility" class="footer-link transition-colors duration-200 text-gray-300">Accessibility</a>
         </div>
       </div>

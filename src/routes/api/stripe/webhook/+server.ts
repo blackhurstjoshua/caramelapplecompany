@@ -86,7 +86,7 @@ export const POST = async ({ request }: RequestEvent) => {
       const checkoutRequest: CheckoutRequest = {
         customer: {
           name: customerName,
-          email: stripeCustomerEmail || undefined,
+          email: stripeCustomerEmail || '',
           phone: stripeCustomerPhone || undefined,
         },
         order: {

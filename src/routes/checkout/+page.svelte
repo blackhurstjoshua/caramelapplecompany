@@ -16,7 +16,6 @@
   let name = '';
   let email = '';
   let phone = '';
-  let contactMethod: 'email' | 'phone' = 'email';
 
   let retrievalMethod: 'pickup' | 'delivery' = 'pickup';
   let addressLine1 = '';
@@ -60,8 +59,7 @@
     }
     if (currentStep === 2) {
       if (!name.trim()) return 'Please enter your name';
-      if (contactMethod === 'email' && !email.trim()) return 'Please enter your email';
-      if (contactMethod === 'phone' && !phone.trim()) return 'Please enter your phone number';
+      if (!email.trim()) return 'Please enter your email address';
       if (retrievalMethod === 'delivery') {
         if (!addressLine1.trim() || !city.trim() || !state.trim() || !zip.trim()) {
           return 'Please complete the delivery address';
@@ -137,8 +135,8 @@
     const checkoutRequest = {
       customer: {
         name: name.trim(),
-        email: contactMethod === 'email' ? email.trim() : undefined,
-        phone: contactMethod === 'phone' ? phone.trim() : undefined
+        email: email.trim(),
+        phone: phone.trim() || undefined
       },
       order: {
         delivery_date: selectedDate,
@@ -280,32 +278,15 @@
             <input id="name" class="input input-bordered bg-gray-50 border-gray-300" bind:value={name} placeholder="Jane Doe" />
           </div>
 
-          <div>
-            <fieldset>
-              <legend class="text-sm font-medium text-gray-700 mb-3">Preferred Contact Method</legend>
-              <div class="flex space-x-4">
-                <label class="cursor-pointer">
-                  <input type="radio" class="radio" name="contact" value="email" checked={contactMethod==='email'} onchange={() => contactMethod='email'}>
-                  <span class="ml-2">Email</span>
-                </label>
-                <label class="cursor-pointer">
-                  <input type="radio" class="radio" name="contact" value="phone" checked={contactMethod==='phone'} onchange={() => contactMethod='phone'}>
-                  <span class="ml-2">Phone</span>
-                </label>
-              </div>
-            </fieldset>
-            
-            {#if contactMethod === 'email'}
-              <div class="form-control mt-3">
-                <label class="block text-sm font-medium text-gray-700 mb-1" for="email">Email Address</label>
-                <input id="email" class="input input-bordered bg-gray-50 border-gray-300" type="email" bind:value={email} placeholder="you@example.com" />
-              </div>
-            {:else}
-              <div class="form-control mt-3">
-                <label class="block text-sm font-medium text-gray-700 mb-1" for="phone">Phone Number</label>
-                <input id="phone" class="input input-bordered bg-gray-50 border-gray-300" type="tel" bind:value={phone} placeholder="(555) 123-4567" />
-              </div>
-            {/if}
+          <div class="form-control">
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="email">Email Address</label>
+            <input id="email" class="input input-bordered bg-gray-50 border-gray-300" type="email" bind:value={email} placeholder="you@example.com" />
+            <p class="text-xs text-gray-500 mt-1">We'll send you an order confirmation and updates via email.</p>
+          </div>
+
+          <div class="form-control">
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="phone">Phone Number <span class="text-gray-400 font-normal">(optional)</span></label>
+            <input id="phone" class="input input-bordered bg-gray-50 border-gray-300" type="tel" bind:value={phone} placeholder="(555) 123-4567" />
           </div>
 
           <div>
@@ -449,6 +430,16 @@
             </div>
           </div>
         </div>
+      {/if}
+
+      <!-- Policy Links -->
+      {#if currentStep === totalSteps}
+        <p class="text-xs text-gray-500 mt-6 text-center">
+          By placing your order, you agree to our
+          <a href="/terms-and-conditions" target="_blank" class="underline hover:text-gray-700">Terms &amp; Conditions</a>
+          and
+          <a href="/privacy-policy" target="_blank" class="underline hover:text-gray-700">Privacy Policy</a>.
+        </p>
       {/if}
 
       <!-- Error Display -->

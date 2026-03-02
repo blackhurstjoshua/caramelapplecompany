@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 import { CustomerService } from './customers';
 import { OrderService, type CreateOrderItemData } from './orders';
+import { EmailService } from './email';
 
 // Use raw Supabase client for this service
 const supabaseClient = createClient(
@@ -12,7 +13,7 @@ const supabaseClient = createClient(
 // Clean request interfaces
 export interface CheckoutCustomer {
   name: string;
-  email?: string;
+  email: string;
   phone?: string;
 }
 
@@ -108,6 +109,10 @@ export class CheckoutService {
       
       await OrderService.createOrderItems(orderItems);
 
+      // Fire-and-forget: send notification emails without blocking checkout
+      EmailService.sendOrderConfirmationToCustomer(request, orderId);
+      EmailService.sendOrderNotificationToAdmin(request, orderId);
+
       return {
         success: true,
         orderId
@@ -132,8 +137,8 @@ export class CheckoutService {
       return { isValid: false, error: 'Customer name is required' };
     }
 
-    if (!request.customer.email?.trim() && !request.customer.phone?.trim()) {
-      return { isValid: false, error: 'Either email or phone is required' };
+    if (!request.customer.email?.trim()) {
+      return { isValid: false, error: 'Email address is required' };
     }
 
     // Order validation
