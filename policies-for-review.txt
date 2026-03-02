@@ -1,0 +1,150 @@
+================================================================================
+CARAMEL APPLE CO. — PRIVACY POLICY
+================================================================================
+Effective Date: March 1, 2026
+
+
+1. Information We Collect
+
+When you place an order with Caramel Apple Co., we collect the following
+personal information:
+
+  - Full name
+  - Email address
+  - Phone number (if provided)
+  - Delivery address (if applicable)
+  - Payment information (processed securely by Stripe; we do not store
+    card details)
+
+
+2. How We Use Your Information
+
+Your personal information is used solely for the following purposes:
+
+  - Processing and fulfilling your orders
+  - Sending order confirmations and status updates via email
+  - Communicating with you about your order when necessary
+  - Improving our products and services
+
+
+3. We Do Not Sell Your Data
+
+We will never sell, rent, or share your personal information with third
+parties for marketing purposes. Your data is used exclusively for internal
+operations and necessary communication related to your orders.
+
+
+4. Data Storage & Security
+
+Your information is stored securely using industry-standard practices.
+Payment processing is handled entirely by Stripe, a PCI-compliant payment
+provider. We do not store credit card numbers or sensitive payment details
+on our servers.
+
+
+5. Third-Party Services
+
+We use the following third-party services to operate our business:
+
+  - Stripe — secure payment processing
+  - Namecheap Private Email — order notification emails
+
+These services have their own privacy policies and handle data in
+accordance with their respective terms.
+
+
+6. Your Rights
+
+You may request access to, correction of, or deletion of your personal
+information at any time by contacting us at the email address below.
+
+
+7. Changes to This Policy
+
+We may update this Privacy Policy from time to time. Any changes will be
+posted on this page with an updated effective date.
+
+
+8. Contact Us
+
+If you have questions about this Privacy Policy, please contact us:
+
+  Email: kristaleecook5@gmail.com
+  Phone: (801) 787-7288
+
+
+================================================================================
+CARAMEL APPLE CO. — TERMS & CONDITIONS
+================================================================================
+Effective Date: March 1, 2026
+
+
+1. Order Acceptance
+
+All orders placed through Caramel Apple Co. are subject to acceptance and
+availability. We reserve the right to refuse or cancel any order at our
+discretion. If an order is cancelled, you will be notified and any payment
+already collected will be refunded in full.
+
+
+2. Pricing & Payment
+
+All prices are listed in US dollars and include applicable sales tax at
+checkout. We accept the following payment methods:
+
+  - Cash or Venmo at pickup/delivery
+  - Credit or debit card via Stripe (charged at time of order)
+
+
+3. Pickup & Delivery
+
+Orders are available for pickup or local delivery on the date selected
+during checkout. A delivery fee applies for delivery orders. You are
+responsible for providing accurate contact and delivery information. We are
+not liable for delays or failed deliveries caused by incorrect information.
+
+
+4. Cancellations & Modifications
+
+If you need to cancel or modify your order, please contact us as soon as
+possible. We will do our best to accommodate changes, but cannot guarantee
+modifications once preparation has begun. Refund eligibility for
+cancellations is determined on a case-by-case basis.
+
+
+5. Allergen Notice
+
+Our products are made in a facility that handles common allergens including
+nuts, dairy, wheat, and soy. While we take precautions, we cannot guarantee
+that our products are free from allergens. Please note any allergies in the
+special instructions field during checkout.
+
+
+6. Limitation of Liability
+
+Caramel Apple Co. is not liable for any indirect, incidental, or
+consequential damages arising from the use of our website or the purchase
+of our products. Our total liability shall not exceed the amount paid for
+the specific order in question.
+
+
+7. Intellectual Property
+
+All content on this website, including text, images, logos, and designs, is
+the property of Caramel Apple Co. and may not be reproduced without written
+permission.
+
+
+8. Changes to These Terms
+
+We may update these Terms & Conditions from time to time. Continued use of
+our website after changes are posted constitutes acceptance of the updated
+terms.
+
+
+9. Contact Us
+
+If you have questions about these Terms & Conditions, please contact us:
+
+  Email: kristaleecook5@gmail.com
+  Phone: (801) 787-7288
