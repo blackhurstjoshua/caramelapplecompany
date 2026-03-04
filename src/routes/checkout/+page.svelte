@@ -16,6 +16,7 @@
   let name = '';
   let email = '';
   let phone = '';
+  $: smsConsent = phone.trim().length > 0;
 
   let retrievalMethod: 'pickup' | 'delivery' = 'pickup';
   let addressLine1 = '';
@@ -136,7 +137,8 @@
       customer: {
         name: name.trim(),
         email: email.trim(),
-        phone: phone.trim() || undefined
+        phone: phone.trim() || undefined,
+        smsConsent
       },
       order: {
         delivery_date: selectedDate,
@@ -287,6 +289,12 @@
           <div class="form-control">
             <label class="block text-sm font-medium text-gray-700 mb-1" for="phone">Phone Number <span class="text-gray-400 font-normal">(optional)</span></label>
             <input id="phone" class="input input-bordered bg-gray-50 border-gray-300" type="tel" bind:value={phone} placeholder="(555) 123-4567" />
+            <p class="text-xs text-gray-500 leading-relaxed mt-1">
+              By providing your phone number, you agree to receive transactional SMS messages from Caramel Apple Company regarding your orders, deliveries, or account activity. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for assistance. Consent is not a condition of purchase. View our
+              <a href="/terms-and-conditions" target="_blank" class="underline hover:text-gray-700">Terms &amp; Conditions</a>
+              and
+              <a href="/privacy-policy" target="_blank" class="underline hover:text-gray-700">Privacy Policy</a>.
+            </p>
           </div>
 
           <div>

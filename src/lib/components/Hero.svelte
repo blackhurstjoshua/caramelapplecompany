@@ -15,6 +15,15 @@
       imageAlt: 'Gourmet caramel apples with toppings'
     },
     {
+      id: 'slide5',
+      title: 'Food Truck',
+      titleHighlight: 'Events',
+      textColor: 'white', // 'white' or 'black'
+      videoUrl: 'https://xbjkguuwlwqhrfumrkye.supabase.co/storage/v1/object/public/videos/IMG_0260.mov',
+      imageUrl: 'https://xbjkguuwlwqhrfumrkye.supabase.co/storage/v1/object/public/images/20201113_065420.jpg',
+      imageAlt: 'Food truck serving caramel apples'
+    },
+    {
       id: 'slide1',
       title: 'Handcrafted',
       titleHighlight: 'Weekly Flavors',
@@ -31,7 +40,16 @@
       videoUrl: 'https://xbjkguuwlwqhrfumrkye.supabase.co/storage/v1/object/public/videos/IMG_7614.mov',
       imageUrl: 'https://xbjkguuwlwqhrfumrkye.supabase.co/storage/v1/object/public/images/20201113_065420.jpg',
       imageAlt: 'Fresh caramel apples on display'
-    }
+    },
+    {
+      id: 'slide4',
+      title: 'Birthday Box',
+      titleHighlight: 'Customized',
+      textColor: 'black', // 'white' or 'black'
+      videoUrl: 'https://xbjkguuwlwqhrfumrkye.supabase.co/storage/v1/object/public/videos/IMG_0006.mov',
+      imageUrl: 'https://xbjkguuwlwqhrfumrkye.supabase.co/storage/v1/object/public/images/20201113_065420.jpg',
+      imageAlt: 'Customized birthday apples'
+    },
   ];
   
   let currentSlide = 0;
