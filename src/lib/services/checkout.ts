@@ -109,9 +109,10 @@ export class CheckoutService {
       
       await OrderService.createOrderItems(orderItems);
 
-      // Fire-and-forget: send notification emails without blocking checkout
-      EmailService.sendOrderConfirmationToCustomer(request, orderId);
-      EmailService.sendOrderNotificationToAdmin(request, orderId);
+      await Promise.all([
+        EmailService.sendOrderConfirmationToCustomer(request, orderId),
+        EmailService.sendOrderNotificationToAdmin(request, orderId)
+      ]);
 
       return {
         success: true,
