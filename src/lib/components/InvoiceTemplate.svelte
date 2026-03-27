@@ -10,7 +10,11 @@
   let { order, invoiceNumber = `INV-${order.id.substring(0, 8).toUpperCase()}` }: Props = $props();
   
   function formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    const isTimestamp = dateString.includes('T');
+    const date = isTimestamp
+      ? new Date(dateString)
+      : (() => { const [y, m, d] = dateString.split('-').map(Number); return new Date(y, m - 1, d); })();
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -57,6 +61,9 @@
       <h3 class="section-title">INVOICE NO:</h3>
       <p class="invoice-number">#{invoiceNumber}</p>
       <p class="invoice-date">{formatDate(order.order_date)}</p>
+      <p class="invoice-date">
+        {order.retrieval_method === 'pickup' ? 'Pickup' : 'Delivery'} Date: {formatDate(order.delivery_date)}
+      </p>
     </div>
   </section>
   

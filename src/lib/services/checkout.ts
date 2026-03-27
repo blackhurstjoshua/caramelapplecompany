@@ -109,9 +109,11 @@ export class CheckoutService {
       
       await OrderService.createOrderItems(orderItems);
 
+      const invoiceAttachment = await EmailService.generateInvoiceAttachment(orderId);
+
       await Promise.all([
-        EmailService.sendOrderConfirmationToCustomer(request, orderId),
-        EmailService.sendOrderNotificationToAdmin(request, orderId)
+        EmailService.sendOrderConfirmationToCustomer(request, orderId, invoiceAttachment),
+        EmailService.sendOrderNotificationToAdmin(request, orderId, invoiceAttachment)
       ]);
 
       return {
