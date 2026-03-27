@@ -78,7 +78,11 @@
   }
   
   function formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    const isTimestamp = dateString.includes('T');
+    const date = isTimestamp
+      ? new Date(dateString)
+      : (() => { const [y, m, d] = dateString.split('-').map(Number); return new Date(y, m - 1, d); })();
+    return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric'

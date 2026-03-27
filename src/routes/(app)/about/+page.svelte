@@ -93,7 +93,7 @@
             Email Us
           </h3>
           <p class="text-2xl lg:text-3xl font-bold mb-2 text-white" style="font-family: var(--font-family-title);">
-            kriataleecook5@gmail.com
+            kristaleecook5@gmail.com
           </p>
           <p class="text-lg opacity-90 text-white">
             We respond as soon as possible

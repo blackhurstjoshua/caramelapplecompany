@@ -369,6 +369,7 @@
             <p class="text-gray-600 mb-2">Select when you'd like your order to be ready for {retrievalMethod}</p>
             <p class="text-sm text-blue-600 mb-2">
               💡 Only dates available for {retrievalMethod} are shown as selectable
+              💡 Same day deliveries made after 1pm may not be available. Contact for further details.
             </p>
             {#if selectedDate}
               <p class="text-sm text-green-600 font-medium">

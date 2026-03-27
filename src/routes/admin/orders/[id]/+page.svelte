@@ -54,7 +54,11 @@
   }
   
   function formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    const isTimestamp = dateString.includes('T');
+    const date = isTimestamp
+      ? new Date(dateString)
+      : (() => { const [y, m, d] = dateString.split('-').map(Number); return new Date(y, m - 1, d); })();
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -62,7 +66,7 @@
   }
   
   function formatDateForInput(dateString: string): string {
-    return new Date(dateString).toISOString().split('T')[0];
+    return dateString.slice(0, 10);
   }
   
   function getStatusBadgeClass(status: string): string {
