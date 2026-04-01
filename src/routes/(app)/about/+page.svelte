@@ -189,73 +189,43 @@
 <!-- Hours & Location Details -->
 <section class="py-16 lg:py-20 bg-white">
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="text-center mb-12">
-      <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4" 
-          style="font-family: var(--font-family-title);">
-        Visit Our Kitchen
-      </h2>
-      <p class="text-lg text-gray-600">
-        Come see where the magic happens! We love welcoming visitors to our cozy kitchen.
-      </p>
-    </div>
-
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <!-- Hours Card -->
+      <!-- Pickup Details Card -->
       <div class="card bg-white border-2 border-gray-200 shadow-lg">
         <div class="card-body">
           <div class="flex items-center gap-3 mb-4">
             <Clock class="w-8 h-8 text-gray-700" />
             <h3 class="text-2xl font-bold text-gray-900" style="font-family: var(--font-family-title);">
-              Store Hours
+              Pickup Details
             </h3>
           </div>
           <div class="space-y-3 text-lg">
-            <div class="flex justify-between">
-              <span class="font-semibold">Monday - Friday</span>
-              <span class="text-2xl font-bold text-gray-900">8:00 AM - 8:00 PM</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="font-semibold">Saturday</span>
-              <span class="text-2xl font-bold text-gray-900">8:00 AM - 8:00 PM</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="font-semibold">Sunday</span>
-              <span class="text-2xl font-bold text-gray-900">10:00 AM - 6:00 PM</span>
-            </div>
+            <p class="font-semibold text-gray-900">Home-based pickup only</p>
+            <p class="text-gray-700">We do not have a retail storefront or walk-in shop.</p>
+            <p class="text-gray-700">Please place your order ahead of time and we will coordinate pickup timing with you.</p>
           </div>
           <div class="mt-4 p-3 rounded-lg" style="background-color: var(--color-apple-light);">
             <p class="text-sm font-medium" style="color: black;">
-              💡 Pro tip: Call ahead for large orders or special requests!
+              💡 Pickup is from a residential address, so ordering ahead is required.
             </p>
           </div>
         </div>
       </div>
 
-      <!-- Location Details Card -->
+      <!-- Pickup Location Card -->
       <div class="card bg-black text-white shadow-lg black-card-override">
         <div class="card-body">
           <div class="flex items-center gap-3 mb-4">
             <MapPin class="w-8 h-8 text-white" />
             <h3 class="text-2xl font-bold text-white" style="font-family: var(--font-family-title);">
-              Find Us
+              Home Pickup Location
             </h3>
           </div>
           <div class="space-y-4">
             <div>
               <p class="text-2xl font-bold text-white mb-2">
-                123 Apple Orchard Lane<br>
-                Sweet Valley, CA 90210
-              </p>
-            </div>
-            <div class="space-y-2 text-gray-300">
-              <p class="flex items-center gap-2 text-gray-300">
-                <span class="font-semibold">🚗 Parking:</span> Free street parking available
-              </p>
-              <p class="flex items-center gap-2 text-gray-300">
-                <span class="font-semibold">🚌 Transit:</span> Bus route 42 stops right outside
-              </p>
-              <p class="flex items-center gap-2 text-gray-300">
-                <span class="font-semibold">♿ Access:</span> Wheelchair accessible entrance
+                6229 West 10830 North<br>
+                Highland, UT 84003
               </p>
             </div>
           </div>
