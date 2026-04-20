@@ -5,6 +5,7 @@
   import Calendar from '$lib/components/Calendar.svelte';
   import type { PageData } from './$types';
   import type { DateAvailability } from '$lib/types';
+  import { isValidUsPhone } from '$lib/phone-us';
   
   export let data: PageData;
 
@@ -16,7 +17,6 @@
   let name = '';
   let email = '';
   let phone = '';
-  $: smsConsent = phone.trim().length > 0;
 
   let retrievalMethod: 'pickup' | 'delivery' = 'pickup';
   let addressLine1 = '';
@@ -61,6 +61,9 @@
     if (currentStep === 2) {
       if (!name.trim()) return 'Please enter your name';
       if (!email.trim()) return 'Please enter your email address';
+      if (phone.trim() && !isValidUsPhone(phone)) {
+        return 'Enter a valid US phone number (10 digits), or leave the field blank.';
+      }
       if (retrievalMethod === 'delivery') {
         if (!addressLine1.trim() || !city.trim() || !state.trim() || !zip.trim()) {
           return 'Please complete the delivery address';
@@ -137,8 +140,7 @@
       customer: {
         name: name.trim(),
         email: email.trim(),
-        phone: phone.trim() || undefined,
-        smsConsent
+        phone: phone.trim() || undefined
       },
       order: {
         delivery_date: selectedDate,
@@ -287,7 +289,7 @@
           </div>
 
           <div class="form-control">
-            <label class="block text-sm font-medium text-gray-700 mb-1" for="phone">Phone Number <span class="text-gray-400 font-normal">(optional)</span></label>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="phone">Phone Number <span class="text-gray-400 font-normal">(optional, US only)</span></label>
             <input id="phone" class="input input-bordered bg-gray-50 border-gray-300" type="tel" bind:value={phone} placeholder="(555) 123-4567" />
             <p class="text-xs text-gray-500 leading-relaxed mt-1">
               By providing your phone number, you agree to receive transactional SMS messages from Caramel Apple Company regarding your orders, deliveries, or account activity. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for assistance. Consent is not a condition of purchase. View our
@@ -444,7 +446,7 @@
       <!-- Policy Links -->
       {#if currentStep === totalSteps}
         <p class="text-xs text-gray-500 mt-6 text-center">
-          By placing your order, you agree to our
+          By providing information on this form, you agree to our
           <a href="/terms-and-conditions" target="_blank" class="underline hover:text-gray-700">Terms &amp; Conditions</a>
           and
           <a href="/privacy-policy" target="_blank" class="underline hover:text-gray-700">Privacy Policy</a>.

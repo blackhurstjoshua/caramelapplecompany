@@ -5,6 +5,7 @@ import Stripe from 'stripe';
 import { env } from '$env/dynamic/private';
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 import { createClient } from '@supabase/supabase-js';
+import { normalizeUsPhoneE164 } from '$lib/phone-us';
 
 // Initialize Supabase client for fetching product data
 const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
@@ -34,6 +35,17 @@ export const POST = async ({ request, url }: RequestEvent) => {
           success: false, 
           error: 'Invalid payload structure' 
         }, { status: 400 });
+      }
+
+      const rawPhone = checkoutRequest.customer.phone?.trim();
+      if (rawPhone && !normalizeUsPhoneE164(rawPhone)) {
+        return json(
+          {
+            success: false,
+            error: 'Enter a valid US phone number (10 digits), or leave the field blank.'
+          },
+          { status: 400 }
+        );
       }
 
       // Fetch actual product data from database for security
@@ -111,7 +123,7 @@ export const POST = async ({ request, url }: RequestEvent) => {
           // Store order details in metadata to retrieve in webhook
           customer_name: checkoutRequest.customer.name,
           customer_email: checkoutRequest.customer.email || '',
-          customer_phone: checkoutRequest.customer.phone || '',
+          customer_phone: rawPhone ? normalizeUsPhoneE164(rawPhone) ?? '' : '',
           delivery_date: checkoutRequest.order.delivery_date,
           retrieval_method: checkoutRequest.order.retrieval_method,
           payment_method: 'stripe',
@@ -138,6 +150,8 @@ export const POST = async ({ request, url }: RequestEvent) => {
     }
 
     const checkoutRequest = body as CheckoutRequest;
+    delete checkoutRequest.stripeCheckoutSessionId;
+
     const result = await CheckoutService.processCheckout(checkoutRequest);
     
     if (result.success) {

@@ -1,8 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+import { normalizeUsPhoneE164 } from '$lib/phone-us';
 import { CustomerService } from './customers';
 import { OrderService, type CreateOrderItemData } from './orders';
 import { EmailService } from './email';
+import { SmsService } from './sms';
 
 // Use raw Supabase client for this service
 const supabaseClient = createClient(
@@ -40,6 +42,11 @@ export interface CheckoutRequest {
   customer: CheckoutCustomer;
   order: CheckoutOrder;
   items: CheckoutItem[];
+  /**
+   * Stripe `checkout.session.completed` only — set by the verified webhook handler.
+   * Do not accept from the browser; the checkout route strips it for non-Stripe flows.
+   */
+  stripeCheckoutSessionId?: string;
 }
 
 export interface CheckoutResult {
@@ -69,6 +76,27 @@ export class CheckoutService {
         };
       }
 
+      if (request.stripeCheckoutSessionId) {
+        const existingId = await OrderService.getOrderIdByStripeSession(request.stripeCheckoutSessionId);
+        if (existingId) {
+          console.log(
+            `Skipping checkout: Stripe session ${request.stripeCheckoutSessionId} already processed as order ${existingId}`
+          );
+          return { success: true, orderId: existingId };
+        }
+      }
+
+      const phoneNormalized = request.customer.phone?.trim()
+        ? normalizeUsPhoneE164(request.customer.phone)
+        : undefined;
+      const requestForNotifications: CheckoutRequest = {
+        ...request,
+        customer: {
+          ...request.customer,
+          phone: phoneNormalized ?? undefined
+        }
+      };
+
       // Step 2: Fetch current product prices from database (security)
       const itemsWithPrices = await this.enrichItemsWithPrices(request.items);
       if (!itemsWithPrices) {
@@ -83,44 +111,63 @@ export class CheckoutService {
       const totals = this.calculateTotals(itemsWithPrices, request.order.retrieval_method);
 
       // Step 4: Find or create customer
-      const customerId = await CustomerService.upsertCustomer(request.customer);
-
-      // Step 5: Create order
-      const orderId = await OrderService.createOrder({
-        customer_id: customerId,
-        delivery_date: request.order.delivery_date,
-        total_cents: totals.totalCents,
-        subtotal_cents: totals.subtotalCents,
-        tax_cents: totals.taxCents,
-        retrieval_method: request.order.retrieval_method,
-        delivery_fee_cents: totals.deliveryFeeCents,
-        payment_method: request.order.payment_method,
-        address: request.order.address,
-        customizations: request.order.customizations
+      const customerId = await CustomerService.upsertCustomer({
+        ...requestForNotifications.customer,
+        phone: requestForNotifications.customer.phone ?? null
       });
 
+      // Step 5: Create order
+      let orderId: string;
+      try {
+        orderId = await OrderService.createOrder({
+          customer_id: customerId,
+          delivery_date: request.order.delivery_date,
+          total_cents: totals.totalCents,
+          subtotal_cents: totals.subtotalCents,
+          tax_cents: totals.taxCents,
+          retrieval_method: request.order.retrieval_method,
+          delivery_fee_cents: totals.deliveryFeeCents,
+          payment_method: request.order.payment_method,
+          address: request.order.address,
+          customizations: request.order.customizations,
+          stripe_checkout_session_id: request.stripeCheckoutSessionId ?? null
+        });
+      } catch (err: unknown) {
+        const code = typeof err === 'object' && err !== null && 'code' in err ? String((err as { code?: string }).code) : '';
+        if (code === '23505' && request.stripeCheckoutSessionId) {
+          const existingId = await OrderService.getOrderIdByStripeSession(request.stripeCheckoutSessionId);
+          if (existingId) {
+            console.log(
+              `Race on Stripe session ${request.stripeCheckoutSessionId}; order ${existingId} already created — skipping notifications`
+            );
+            return { success: true, orderId: existingId };
+          }
+        }
+        throw err;
+      }
+
       // Step 6: Create order items
-      const orderItems: CreateOrderItemData[] = itemsWithPrices.map(item => ({
+      const orderItems: CreateOrderItemData[] = itemsWithPrices.map((item) => ({
         order_id: orderId,
         product_id: item.product_id,
         quantity: item.quantity,
         unit_price_cents: item.price_cents
       }));
-      
+
       await OrderService.createOrderItems(orderItems);
 
       const invoiceAttachment = await EmailService.generateInvoiceAttachment(orderId);
 
       await Promise.all([
-        EmailService.sendOrderConfirmationToCustomer(request, orderId, invoiceAttachment),
-        EmailService.sendOrderNotificationToAdmin(request, orderId, invoiceAttachment)
+        EmailService.sendOrderConfirmationToCustomer(requestForNotifications, orderId, invoiceAttachment),
+        EmailService.sendOrderNotificationToAdmin(requestForNotifications, orderId, invoiceAttachment),
+        SmsService.sendOrderNotifications(requestForNotifications, orderId, itemsWithPrices)
       ]);
 
       return {
         success: true,
         orderId
       };
-
     } catch (error) {
       console.error('CheckoutService error:', error);
       return {
@@ -142,6 +189,15 @@ export class CheckoutService {
 
     if (!request.customer.email?.trim()) {
       return { isValid: false, error: 'Email address is required' };
+    }
+
+    if (request.customer.phone?.trim()) {
+      if (!normalizeUsPhoneE164(request.customer.phone)) {
+        return {
+          isValid: false,
+          error: 'Enter a valid US phone number (10 digits), or leave the field blank.'
+        };
+      }
     }
 
     // Order validation
@@ -170,12 +226,14 @@ export class CheckoutService {
   /**
    * Fetch current prices from database and enrich items
    */
-  private static async enrichItemsWithPrices(items: CheckoutItem[]): Promise<Array<CheckoutItem & { price_cents: number }> | null> {
-    const productIds = items.map(item => item.product_id);
-    
+  private static async enrichItemsWithPrices(
+    items: CheckoutItem[]
+  ): Promise<Array<CheckoutItem & { price_cents: number; product_name: string }> | null> {
+    const productIds = items.map((item) => item.product_id);
+
     const { data: products, error } = await supabaseClient
       .from('products')
-      .select('id, price_cents, is_active')
+      .select('id, name, price_cents, is_active')
       .in('id', productIds)
       .eq('is_active', true);
 
@@ -184,20 +242,25 @@ export class CheckoutService {
       return null; // Some products not found or inactive
     }
 
-    // Create map for quick lookup
-    const priceMap = new Map(products.map(p => [p.id, p.price_cents]));
+    const productMap = new Map(products.map((p) => [p.id, p]));
 
-    // Enrich items with current prices
-    return items.map(item => ({
-      ...item,
-      price_cents: priceMap.get(item.product_id)!
-    }));
+    return items.map((item) => {
+      const p = productMap.get(item.product_id)!;
+      return {
+        ...item,
+        price_cents: p.price_cents,
+        product_name: p.name
+      };
+    });
   }
 
   /**
    * Calculate order totals including tax
    */
-  private static calculateTotals(items: Array<CheckoutItem & { price_cents: number }>, retrievalMethod: string) {
+  private static calculateTotals(
+    items: Array<CheckoutItem & { price_cents: number; product_name: string }>,
+    retrievalMethod: string
+  ) {
     const subtotal_cents = items.reduce((sum, item) => 
       sum + (item.price_cents * item.quantity), 0);
     

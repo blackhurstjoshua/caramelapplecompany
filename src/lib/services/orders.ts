@@ -22,6 +22,7 @@ export interface Order {
   payment_method: 'pickup' | 'stripe';
   address: any; // JSONB
   customizations: string | null;
+  stripe_checkout_session_id?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -79,6 +80,8 @@ export interface CreateOrderData {
   payment_method: 'pickup' | 'stripe';
   address?: any;
   customizations?: string | null;
+  /** When set, must match Stripe Checkout Session id (cs_…) for paid orders; used for webhook idempotency */
+  stripe_checkout_session_id?: string | null;
 }
 
 export interface CreateOrderItemData {
@@ -146,6 +149,20 @@ export class OrderService {
 
     if (error) throw error;
     return data || [];
+  }
+
+  /**
+   * Returns order id if this Stripe Checkout Session was already processed (webhook idempotency).
+   */
+  static async getOrderIdByStripeSession(sessionId: string): Promise<string | null> {
+    const { data, error } = await supabaseClient
+      .from('orders')
+      .select('id')
+      .eq('stripe_checkout_session_id', sessionId)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data?.id ?? null;
   }
 
   /**
@@ -250,7 +267,8 @@ export class OrderService {
         delivery_fee_cents: orderData.delivery_fee_cents,
         payment_method: orderData.payment_method,
         address: orderData.address || null,
-        customizations: orderData.customizations || null
+        customizations: orderData.customizations || null,
+        stripe_checkout_session_id: orderData.stripe_checkout_session_id ?? null
       })
       .select('id')
       .single();

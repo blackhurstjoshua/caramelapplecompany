@@ -3,6 +3,7 @@ import { json } from '@sveltejs/kit';
 import Stripe from 'stripe';
 import { env } from '$env/dynamic/private';
 import { CheckoutService, type CheckoutRequest, type CheckoutItem } from '$lib/services/checkout';
+import { normalizeUsPhoneE164 } from '$lib/phone-us';
 
 // Initialize Stripe with latest API version
 const stripe = new Stripe(env.STRIPE_SECRET_KEY!, {
@@ -72,10 +73,11 @@ export const POST = async ({ request }: RequestEvent) => {
         session.customer_details?.email ||
         (typeof session.customer_email === 'string' ? session.customer_email : undefined);
 
-      const stripeCustomerPhone =
-        metadata.customer_phone ||
-        session.customer_details?.phone ||
-        undefined;
+      const rawPhone =
+        metadata.customer_phone?.trim() ||
+        session.customer_details?.phone?.trim() ||
+        '';
+      const stripeCustomerPhone = rawPhone ? normalizeUsPhoneE164(rawPhone) ?? undefined : undefined;
 
       const customerName =
         metadata.customer_name ||
@@ -87,7 +89,7 @@ export const POST = async ({ request }: RequestEvent) => {
         customer: {
           name: customerName,
           email: stripeCustomerEmail || '',
-          phone: stripeCustomerPhone || undefined,
+          phone: stripeCustomerPhone,
         },
         order: {
           delivery_date: metadata.delivery_date,
@@ -102,7 +104,8 @@ export const POST = async ({ request }: RequestEvent) => {
           } : undefined,
           customizations: metadata.customizations || undefined,
         },
-        items: items
+        items: items,
+        stripeCheckoutSessionId: session.id,
       };
 
       console.log('💳 Creating order for:', customerName);
