@@ -1,11 +1,13 @@
 import nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { env } from '$env/dynamic/private';
 import type { CheckoutRequest } from './checkout';
 import { orderConfirmationEmail } from '$lib/email-templates/order-confirmation';
 import { adminOrderNotificationEmail } from '$lib/email-templates/admin-order-notification';
 import { OrderService } from './orders';
 import { generateInvoicePdf } from './invoice-pdf';
+import { supabaseAnonClient } from '$lib/supabase';
 
 const ADMIN_EMAIL = 'kristaleecook5@gmail.com';
 
@@ -29,10 +31,11 @@ function getTransporter(): Transporter {
 export class EmailService {
 
   static async generateInvoiceAttachment(
-    orderId: string
+    orderId: string,
+    client: SupabaseClient = supabaseAnonClient
   ): Promise<nodemailer.SendMailOptions['attachments']> {
     try {
-      const orderDetails = await OrderService.getOrderDetails(orderId);
+      const orderDetails = await OrderService.getOrderDetails(orderId, client);
       if (orderDetails) {
         const pdfBuffer = await generateInvoicePdf(orderDetails);
         return [{

@@ -1,13 +1,8 @@
-import { supabase } from '$lib/supabase';
-import { createClient } from '@supabase/supabase-js';
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+import { supabase, supabaseAnonClient } from '$lib/supabase';
 import { Product } from '$lib/stores/product';
 
-// Use raw Supabase client for filtering queries
-const supabaseClient = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
-
 const getAllProducts = async (): Promise<Product[]> => {
-  const { data, error } = await supabaseClient
+  const { data, error } = await supabaseAnonClient
     .from('products')
     .select('*')
     .order('sort_order', { ascending: true, nullsFirst: false }); // NULLs go to end
@@ -36,7 +31,7 @@ const updateProduct = async (product: any) => {
 
 const createProduct = async (product: any) => {
   // Get the max sort_order to put new product at the end
-  const { data: products, error: fetchError } = await supabaseClient
+  const { data: products, error: fetchError } = await supabaseAnonClient
     .from('products')
     .select('sort_order')
     .not('sort_order', 'is', null) // Exclude NULL values
@@ -65,7 +60,7 @@ const createProduct = async (product: any) => {
   if (insertResult.error) throw insertResult.error;
   
   // Get the most recently created product
-  const { data, error } = await supabaseClient.from('products').select('*').order('created_at', { ascending: false }).limit(1);
+  const { data, error } = await supabaseAnonClient.from('products').select('*').order('created_at', { ascending: false }).limit(1);
   if (error) throw error;
   
   // Return the most recently created product
@@ -93,7 +88,7 @@ const reactivateProduct = async (id: string) => {
 };
 
 const getFeaturedApples = async (): Promise<Product[]> => {
-  const { data, error } = await supabaseClient
+  const { data, error } = await supabaseAnonClient
     .from('products')
     .select('*')
     .eq('is_active', true)
@@ -106,7 +101,7 @@ const getFeaturedApples = async (): Promise<Product[]> => {
 };
 
 const getActiveProducts = async (): Promise<Product[]> => {
-  const { data, error } = await supabaseClient
+  const { data, error } = await supabaseAnonClient
     .from('products')
     .select('*')
     .eq('is_active', true)
@@ -134,7 +129,7 @@ const searchProductsByName = async (term: string): Promise<Array<{
     return [];
   }
 
-  const { data, error } = await supabaseClient
+  const { data, error } = await supabaseAnonClient
     .from('products')
     .select('id, name, description, image_path, price_cents, is_active')
     .ilike('name', `%${term}%`)
@@ -153,7 +148,7 @@ const searchProductsByName = async (term: string): Promise<Array<{
  */
 const swapProductOrder = async (productId1: string, productId2: string) => {
   // Step 1: Get both products' current sort_order values
-  const { data: products, error: fetchError } = await supabaseClient
+  const { data: products, error: fetchError } = await supabaseAnonClient
     .from('products')
     .select('id, sort_order')
     .in('id', [productId1, productId2]);

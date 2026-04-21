@@ -1,11 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
-
-// Use raw Supabase client for this service
-const supabaseClient = createClient(
-  PUBLIC_SUPABASE_URL,
-  PUBLIC_SUPABASE_ANON_KEY
-);
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { supabaseAnonClient } from '$lib/supabase';
 
 // Customer interfaces
 export interface Customer {
@@ -51,8 +45,8 @@ export class CustomerService {
   /**
    * Get all customers (basic info only)
    */
-  static async getAllCustomers(): Promise<Customer[]> {
-    const { data, error } = await supabaseClient
+  static async getAllCustomers(client: SupabaseClient = supabaseAnonClient): Promise<Customer[]> {
+    const { data, error } = await client
       .from('customers')
       .select('*')
       .order('created_at', { ascending: false });
@@ -64,8 +58,8 @@ export class CustomerService {
   /**
    * Get customer by ID (basic info only)
    */
-  static async getCustomerById(customerId: string): Promise<Customer | null> {
-    const { data, error } = await supabaseClient
+  static async getCustomerById(customerId: string, client: SupabaseClient = supabaseAnonClient): Promise<Customer | null> {
+    const { data, error } = await client
       .from('customers')
       .select('*')
       .eq('id', customerId)
@@ -81,13 +75,13 @@ export class CustomerService {
   /**
    * Get customer with statistics (for customer details view)
    */
-  static async getCustomerWithStats(customerId: string): Promise<CustomerWithStats | null> {
+  static async getCustomerWithStats(customerId: string, client: SupabaseClient = supabaseAnonClient): Promise<CustomerWithStats | null> {
     // Get customer basic info
-    const customer = await this.getCustomerById(customerId);
+    const customer = await this.getCustomerById(customerId, client);
     if (!customer) return null;
 
     // Get customer statistics from orders
-    const { data: stats, error: statsError } = await supabaseClient
+    const { data: stats, error: statsError } = await client
       .from('orders')
       .select('total_cents, order_date')
       .eq('customer_id', customerId);
@@ -112,8 +106,8 @@ export class CustomerService {
   /**
    * Get customer's orders
    */
-  static async getCustomerOrders(customerId: string) {
-    const { data, error } = await supabaseClient
+  static async getCustomerOrders(customerId: string, client: SupabaseClient = supabaseAnonClient) {
+    const { data, error } = await client
       .from('orders')
       .select(`
         id,
@@ -137,12 +131,12 @@ export class CustomerService {
   /**
    * Find or create customer (used by checkout)
    */
-  static async upsertCustomer(customerData: CreateCustomerData): Promise<string> {
+  static async upsertCustomer(customerData: CreateCustomerData, client: SupabaseClient = supabaseAnonClient): Promise<string> {
     let customerId: string | null = null;
 
     // Try to find existing customer by email
     if (customerData.email) {
-      const { data: existingByEmail, error: emailErr } = await supabaseClient
+      const { data: existingByEmail, error: emailErr } = await client
         .from('customers')
         .select('id')
         .eq('email', customerData.email)
@@ -154,7 +148,7 @@ export class CustomerService {
 
     // Try to find existing customer by phone if not found by email
     if (!customerId && customerData.phone) {
-      const { data: existingByPhone, error: phoneErr } = await supabaseClient
+      const { data: existingByPhone, error: phoneErr } = await client
         .from('customers')
         .select('id')
         .eq('phone', customerData.phone)
@@ -166,7 +160,7 @@ export class CustomerService {
 
     // Create new customer if not found
     if (!customerId) {
-      const { data: inserted, error: insertErr } = await supabaseClient
+      const { data: inserted, error: insertErr } = await client
         .from('customers')
         .insert({
           name: customerData.name,
@@ -188,8 +182,8 @@ export class CustomerService {
   /**
    * Create new customer
    */
-  static async createCustomer(customerData: CreateCustomerData): Promise<Customer> {
-    const { data, error } = await supabaseClient
+  static async createCustomer(customerData: CreateCustomerData, client: SupabaseClient = supabaseAnonClient): Promise<Customer> {
+    const { data, error } = await client
       .from('customers')
       .insert({
         name: customerData.name,
@@ -206,8 +200,8 @@ export class CustomerService {
   /**
    * Update customer
    */
-  static async updateCustomer(customerId: string, updates: UpdateCustomerData): Promise<Customer> {
-    const { data, error } = await supabaseClient
+  static async updateCustomer(customerId: string, updates: UpdateCustomerData, client: SupabaseClient = supabaseAnonClient): Promise<Customer> {
+    const { data, error } = await client
       .from('customers')
       .update(updates)
       .eq('id', customerId)
@@ -221,9 +215,9 @@ export class CustomerService {
   /**
    * Delete customer (admin only - be careful with orders!)
    */
-  static async deleteCustomer(customerId: string): Promise<void> {
+  static async deleteCustomer(customerId: string, client: SupabaseClient = supabaseAnonClient): Promise<void> {
     // Check if customer has orders first
-    const { data: orders, error: ordersError } = await supabaseClient
+    const { data: orders, error: ordersError } = await client
       .from('orders')
       .select('id')
       .eq('customer_id', customerId)
@@ -235,7 +229,7 @@ export class CustomerService {
       throw new Error('Cannot delete customer with existing orders');
     }
 
-    const { error } = await supabaseClient
+    const { error } = await client
       .from('customers')
       .delete()
       .eq('id', customerId);
@@ -246,8 +240,8 @@ export class CustomerService {
   /**
    * Search customers by name, email, or phone
    */
-  static async searchCustomers(query: string): Promise<Customer[]> {
-    const { data, error } = await supabaseClient
+  static async searchCustomers(query: string, client: SupabaseClient = supabaseAnonClient): Promise<Customer[]> {
+    const { data, error } = await client
       .from('customers')
       .select('*')
       .or(`name.ilike.%${query}%,email.ilike.%${query}%,phone.ilike.%${query}%`)

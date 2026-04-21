@@ -1,8 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
-
-// Use raw Supabase client for queries
-const supabaseClient = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
+import { supabaseAnonClient } from '$lib/supabase';
 
 export interface Store {
   id: string;
@@ -86,7 +82,7 @@ export function parseAddress(address: string): ParsedAddress {
  * Get all stores from the database
  */
 export async function getAllStores(): Promise<Store[]> {
-  const { data, error } = await supabaseClient
+  const { data, error } = await supabaseAnonClient
     .from('stores')
     .select('*')
     .order('name', { ascending: true });
@@ -103,7 +99,7 @@ export async function getAllStores(): Promise<Store[]> {
  * Get a single store by ID
  */
 export async function getStoreById(id: string): Promise<Store | null> {
-  const { data, error } = await supabaseClient
+  const { data, error } = await supabaseAnonClient
     .from('stores')
     .select('*')
     .eq('id', id)

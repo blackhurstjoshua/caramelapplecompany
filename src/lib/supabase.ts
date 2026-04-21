@@ -50,6 +50,9 @@ const supabaseClient = createClient(
     }
 )
 
+/** Same instance as inside {@link supabase} — use for table queries so the admin session JWT applies to RLS. */
+export { supabaseClient as supabaseAnonClient }
+
 // Create a wrapper that automatically handles case conversion
 class SupabaseWrapper {
   private client = supabaseClient

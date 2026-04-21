@@ -1,11 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
-
-// Use raw Supabase client for this service
-const supabaseClient = createClient(
-  PUBLIC_SUPABASE_URL,
-  PUBLIC_SUPABASE_ANON_KEY
-);
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { supabaseAnonClient } from '$lib/supabase';
 
 // Order interfaces
 export interface Order {
@@ -133,8 +127,8 @@ export class OrderService {
   /**
    * Get all orders with customer info (for admin orders list)
    */
-  static async getAllOrdersWithCustomer(): Promise<OrderWithCustomer[]> {
-    const { data, error } = await supabaseClient
+  static async getAllOrdersWithCustomer(client: SupabaseClient = supabaseAnonClient): Promise<OrderWithCustomer[]> {
+    const { data, error } = await client
       .from('orders')
       .select(`
         *,
@@ -154,8 +148,8 @@ export class OrderService {
   /**
    * Returns order id if this Stripe Checkout Session was already processed (webhook idempotency).
    */
-  static async getOrderIdByStripeSession(sessionId: string): Promise<string | null> {
-    const { data, error } = await supabaseClient
+  static async getOrderIdByStripeSession(sessionId: string, client: SupabaseClient = supabaseAnonClient): Promise<string | null> {
+    const { data, error } = await client
       .from('orders')
       .select('id')
       .eq('stripe_checkout_session_id', sessionId)
@@ -168,8 +162,8 @@ export class OrderService {
   /**
    * Get order by ID (basic info only)
    */
-  static async getOrderById(orderId: string): Promise<Order | null> {
-    const { data, error } = await supabaseClient
+  static async getOrderById(orderId: string, client: SupabaseClient = supabaseAnonClient): Promise<Order | null> {
+    const { data, error } = await client
       .from('orders')
       .select('*')
       .eq('id', orderId)
@@ -185,10 +179,10 @@ export class OrderService {
   /**
    * Get order details with customer and order items (for order details view)
    */
-  static async getOrderDetails(orderId: string): Promise<OrderDetails | null> {
+  static async getOrderDetails(orderId: string, client: SupabaseClient = supabaseAnonClient): Promise<OrderDetails | null> {
     try {
       // Get the order first
-      const { data: order, error: orderError } = await supabaseClient
+      const { data: order, error: orderError } = await client
         .from('orders')
         .select('*')
         .eq('id', orderId)
@@ -203,7 +197,7 @@ export class OrderService {
       if (!order) return null;
 
       // Get the customer
-      const { data: customer, error: customerError } = await supabaseClient
+      const { data: customer, error: customerError } = await client
         .from('customers')
         .select('id, name, email, phone')
         .eq('id', order.customer_id)
@@ -215,7 +209,7 @@ export class OrderService {
       }
 
       // Get the order items with products
-      const { data: orderItems, error: itemsError } = await supabaseClient
+      const { data: orderItems, error: itemsError } = await client
         .from('order_items')
         .select(`
           *,
@@ -253,8 +247,8 @@ export class OrderService {
   /**
    * Create new order (used by checkout service)
    */
-  static async createOrder(orderData: CreateOrderData): Promise<string> {
-    const { data, error } = await supabaseClient
+  static async createOrder(orderData: CreateOrderData, client: SupabaseClient = supabaseAnonClient): Promise<string> {
+    const { data, error } = await client
       .from('orders')
       .insert({
         customer_id: orderData.customer_id,
@@ -282,8 +276,8 @@ export class OrderService {
   /**
    * Create order items (used by checkout service)
    */
-  static async createOrderItems(orderItems: CreateOrderItemData[]): Promise<void> {
-    const { error } = await supabaseClient
+  static async createOrderItems(orderItems: CreateOrderItemData[], client: SupabaseClient = supabaseAnonClient): Promise<void> {
+    const { error } = await client
       .from('order_items')
       .insert(orderItems);
 
@@ -293,8 +287,8 @@ export class OrderService {
   /**
    * Update order status
    */
-  static async updateOrderStatus(orderId: string, status: 'pending' | 'processing' | 'completed' | 'cancelled' | 'refund_due'): Promise<Order> {
-    const { data, error } = await supabaseClient
+  static async updateOrderStatus(orderId: string, status: 'pending' | 'processing' | 'completed' | 'cancelled' | 'refund_due', client: SupabaseClient = supabaseAnonClient): Promise<Order> {
+    const { data, error } = await client
       .from('orders')
       .update({ status })
       .eq('id', orderId)
@@ -308,8 +302,8 @@ export class OrderService {
   /**
    * Update order details
    */
-  static async updateOrder(orderId: string, updates: Partial<CreateOrderData>): Promise<Order> {
-    const { data, error } = await supabaseClient
+  static async updateOrder(orderId: string, updates: Partial<CreateOrderData>, client: SupabaseClient = supabaseAnonClient): Promise<Order> {
+    const { data, error } = await client
       .from('orders')
       .update(updates)
       .eq('id', orderId)
@@ -323,9 +317,9 @@ export class OrderService {
   /**
    * Delete order (admin only - be careful!)
    */
-  static async deleteOrder(orderId: string): Promise<void> {
+  static async deleteOrder(orderId: string, client: SupabaseClient = supabaseAnonClient): Promise<void> {
     // Order items will be deleted automatically due to CASCADE
-    const { error } = await supabaseClient
+    const { error } = await client
       .from('orders')
       .delete()
       .eq('id', orderId);
@@ -336,11 +330,11 @@ export class OrderService {
   /**
    * Search orders by customer name, email, or phone
    */
-  static async searchOrders(query: string): Promise<OrderWithCustomer[]> {
+  static async searchOrders(query: string, client: SupabaseClient = supabaseAnonClient): Promise<OrderWithCustomer[]> {
     const searchTerm = `%${query}%`;
     
     // Search customers by name, email, or phone
-    const { data: customersData } = await supabaseClient
+    const { data: customersData } = await client
       .from('customers')
       .select('id')
       .or(`name.ilike.${searchTerm},email.ilike.${searchTerm},phone.ilike.${searchTerm}`);
@@ -349,7 +343,7 @@ export class OrderService {
     
     // If customers found, fetch their orders
     if (customerIds.length > 0) {
-      const { data, error } = await supabaseClient
+      const { data, error } = await client
         .from('orders')
         .select(`
           *,
@@ -377,9 +371,10 @@ export class OrderService {
   static async updateOrderWithItems(
     orderId: string,
     orderUpdates: OrderUpdatesPayload,
-    itemOps: ItemOp[]
+    itemOps: ItemOp[],
+    client: SupabaseClient = supabaseAnonClient
   ): Promise<any> {
-    const { data, error } = await supabaseClient.rpc(
+    const { data, error } = await client.rpc(
       'update_order_with_items',
       {
         p_order_id: orderId,

@@ -1,16 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+import { PUBLIC_SUPABASE_URL } from '$env/static/public';
+import { SUPABASE_SERVICE_ROLE_KEY } from '$env/static/private';
 import { normalizeUsPhoneE164 } from '$lib/phone-us';
 import { CustomerService } from './customers';
 import { OrderService, type CreateOrderItemData } from './orders';
 import { EmailService } from './email';
-import { SmsService } from './sms';
 
-// Use raw Supabase client for this service
-const supabaseClient = createClient(
-  PUBLIC_SUPABASE_URL,
-  PUBLIC_SUPABASE_ANON_KEY
-);
+function checkoutDb() {
+  return createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
+}
 
 // Clean request interfaces
 export interface CheckoutCustomer {
@@ -76,8 +76,10 @@ export class CheckoutService {
         };
       }
 
+      const db = checkoutDb();
+
       if (request.stripeCheckoutSessionId) {
-        const existingId = await OrderService.getOrderIdByStripeSession(request.stripeCheckoutSessionId);
+        const existingId = await OrderService.getOrderIdByStripeSession(request.stripeCheckoutSessionId, db);
         if (existingId) {
           console.log(
             `Skipping checkout: Stripe session ${request.stripeCheckoutSessionId} already processed as order ${existingId}`
@@ -98,7 +100,7 @@ export class CheckoutService {
       };
 
       // Step 2: Fetch current product prices from database (security)
-      const itemsWithPrices = await this.enrichItemsWithPrices(request.items);
+      const itemsWithPrices = await this.enrichItemsWithPrices(request.items, db);
       if (!itemsWithPrices) {
         return {
           success: false,
@@ -111,31 +113,37 @@ export class CheckoutService {
       const totals = this.calculateTotals(itemsWithPrices, request.order.retrieval_method);
 
       // Step 4: Find or create customer
-      const customerId = await CustomerService.upsertCustomer({
-        ...requestForNotifications.customer,
-        phone: requestForNotifications.customer.phone ?? null
-      });
+      const customerId = await CustomerService.upsertCustomer(
+        {
+          ...requestForNotifications.customer,
+          phone: requestForNotifications.customer.phone ?? null
+        },
+        db
+      );
 
       // Step 5: Create order
       let orderId: string;
       try {
-        orderId = await OrderService.createOrder({
-          customer_id: customerId,
-          delivery_date: request.order.delivery_date,
-          total_cents: totals.totalCents,
-          subtotal_cents: totals.subtotalCents,
-          tax_cents: totals.taxCents,
-          retrieval_method: request.order.retrieval_method,
-          delivery_fee_cents: totals.deliveryFeeCents,
-          payment_method: request.order.payment_method,
-          address: request.order.address,
-          customizations: request.order.customizations,
-          stripe_checkout_session_id: request.stripeCheckoutSessionId ?? null
-        });
+        orderId = await OrderService.createOrder(
+          {
+            customer_id: customerId,
+            delivery_date: request.order.delivery_date,
+            total_cents: totals.totalCents,
+            subtotal_cents: totals.subtotalCents,
+            tax_cents: totals.taxCents,
+            retrieval_method: request.order.retrieval_method,
+            delivery_fee_cents: totals.deliveryFeeCents,
+            payment_method: request.order.payment_method,
+            address: request.order.address,
+            customizations: request.order.customizations,
+            stripe_checkout_session_id: request.stripeCheckoutSessionId ?? null
+          },
+          db
+        );
       } catch (err: unknown) {
         const code = typeof err === 'object' && err !== null && 'code' in err ? String((err as { code?: string }).code) : '';
         if (code === '23505' && request.stripeCheckoutSessionId) {
-          const existingId = await OrderService.getOrderIdByStripeSession(request.stripeCheckoutSessionId);
+          const existingId = await OrderService.getOrderIdByStripeSession(request.stripeCheckoutSessionId, db);
           if (existingId) {
             console.log(
               `Race on Stripe session ${request.stripeCheckoutSessionId}; order ${existingId} already created — skipping notifications`
@@ -154,25 +162,36 @@ export class CheckoutService {
         unit_price_cents: item.price_cents
       }));
 
-      await OrderService.createOrderItems(orderItems);
+      await OrderService.createOrderItems(orderItems, db);
 
-      const invoiceAttachment = await EmailService.generateInvoiceAttachment(orderId);
+      const invoiceAttachment = await EmailService.generateInvoiceAttachment(orderId, db);
 
       await Promise.all([
         EmailService.sendOrderConfirmationToCustomer(requestForNotifications, orderId, invoiceAttachment),
-        EmailService.sendOrderNotificationToAdmin(requestForNotifications, orderId, invoiceAttachment),
-        SmsService.sendOrderNotifications(requestForNotifications, orderId, itemsWithPrices)
+        EmailService.sendOrderNotificationToAdmin(requestForNotifications, orderId, invoiceAttachment)
       ]);
+
+      // 10DLC: import { SmsService } from './sms' and add: await SmsService.sendOrderNotifications(requestForNotifications, orderId, itemsWithPrices);
 
       return {
         success: true,
         orderId
       };
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       console.error('CheckoutService error:', error);
+      if (
+        message.includes('stripe_checkout_session') ||
+        message.includes('column') ||
+        message.includes('schema cache')
+      ) {
+        console.error(
+          'Hint: If you added Stripe idempotency, run the SQL in db/add_stripe_checkout_session_id.sql on your Supabase database.'
+        );
+      }
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'An unexpected error occurred',
+        error: message || 'An unexpected error occurred',
         errorType: 'unknown'
       };
     }
@@ -227,11 +246,12 @@ export class CheckoutService {
    * Fetch current prices from database and enrich items
    */
   private static async enrichItemsWithPrices(
-    items: CheckoutItem[]
+    items: CheckoutItem[],
+    db: ReturnType<typeof checkoutDb>
   ): Promise<Array<CheckoutItem & { price_cents: number; product_name: string }> | null> {
     const productIds = items.map((item) => item.product_id);
 
-    const { data: products, error } = await supabaseClient
+    const { data: products, error } = await db
       .from('products')
       .select('id, name, price_cents, is_active')
       .in('id', productIds)
