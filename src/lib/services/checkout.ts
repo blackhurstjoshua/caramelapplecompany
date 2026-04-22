@@ -1,15 +1,11 @@
-import { createClient } from '@supabase/supabase-js';
-import { PUBLIC_SUPABASE_URL } from '$env/static/public';
-import { SUPABASE_SERVICE_ROLE_KEY } from '$env/static/private';
 import { normalizeUsPhoneE164 } from '$lib/phone-us';
+import { createServiceRoleClient } from '$lib/supabase-service-role';
 import { CustomerService } from './customers';
 import { OrderService, type CreateOrderItemData } from './orders';
 import { EmailService } from './email';
 
 function checkoutDb() {
-  return createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-    auth: { persistSession: false, autoRefreshToken: false }
-  });
+  return createServiceRoleClient();
 }
 
 // Clean request interfaces
@@ -171,7 +167,7 @@ export class CheckoutService {
         EmailService.sendOrderNotificationToAdmin(requestForNotifications, orderId, invoiceAttachment)
       ]);
 
-      // 10DLC: import { SmsService } from './sms' and add: await SmsService.sendOrderNotifications(requestForNotifications, orderId, itemsWithPrices);
+      // SMS: set SMS_ORDER_NOTIFICATIONS_ENABLED=true and wire SmsService when Twilio / 10DLC is approved.
 
       return {
         success: true,

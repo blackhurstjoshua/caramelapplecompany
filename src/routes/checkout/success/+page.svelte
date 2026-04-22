@@ -68,7 +68,7 @@
                 <span class="text-white text-sm font-bold">1</span>
               </div>
               <div>
-                <p class="text-gray-700"><strong>Order Confirmation:</strong> You'll receive a confirmation email or text within 15 minutes.</p>
+                <p class="text-gray-700"><strong>Order Confirmation:</strong> You'll receive a confirmation email within 15 minutes.</p>
               </div>
             </div>
             <div class="flex items-start space-x-3">

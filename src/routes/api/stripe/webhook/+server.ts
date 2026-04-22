@@ -10,6 +10,45 @@ const stripe = new Stripe(env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-09-30.clover'
 });
 
+function checkoutItemsFromStripeLineItems(lineItems: Stripe.LineItem[]): CheckoutItem[] {
+  const items: CheckoutItem[] = [];
+  for (const li of lineItems) {
+    const price = li.price;
+    if (!price || typeof price === 'string') continue;
+    const product = price.product;
+    if (!product || typeof product === 'string' || product.deleted) continue;
+    const productId = product.metadata?.product_id;
+    if (!productId) continue;
+    const qty = li.quantity ?? 1;
+    items.push({ product_id: productId, quantity: qty });
+  }
+  return items;
+}
+
+async function resolveCheckoutItems(
+  sessionId: string,
+  metadata: Stripe.Metadata | null
+): Promise<CheckoutItem[]> {
+  try {
+    const list = await stripe.checkout.sessions.listLineItems(sessionId, {
+      limit: 100,
+      expand: ['data.price.product']
+    });
+    const fromStripe = checkoutItemsFromStripeLineItems(list.data ?? []);
+    if (fromStripe.length > 0) {
+      return fromStripe;
+    }
+  } catch (e) {
+    console.warn('Could not rebuild cart from Stripe line items; falling back to metadata.items:', e);
+  }
+
+  try {
+    return JSON.parse(metadata?.items || '[]') as CheckoutItem[];
+  } catch {
+    return [];
+  }
+}
+
 // GET handler for verification/health check
 export const GET = async () => {
   return json({ 
@@ -57,14 +96,13 @@ export const POST = async ({ request }: RequestEvent) => {
 
       console.log('📦 Metadata found:', Object.keys(metadata));
 
-      // Parse items from metadata
-      const items: CheckoutItem[] = JSON.parse(metadata.items || '[]');
-      
+      const items = await resolveCheckoutItems(session.id, metadata);
+
       if (items.length === 0) {
-        console.error('❌ No items found in metadata');
+        console.error('❌ No items from Stripe line items or session metadata');
         throw new Error('No items in order');
       }
-      
+
       console.log(`📦 Processing order with ${items.length} items`);
 
       // Fallbacks from Stripe session in case some customer fields weren't passed via metadata

@@ -3,12 +3,8 @@ import { json } from '@sveltejs/kit';
 import { CheckoutService, type CheckoutRequest } from '$lib/services/checkout';
 import Stripe from 'stripe';
 import { env } from '$env/dynamic/private';
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
-import { createClient } from '@supabase/supabase-js';
 import { normalizeUsPhoneE164 } from '$lib/phone-us';
-
-// Initialize Supabase client for fetching product data
-const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
+import { createServiceRoleClient } from '$lib/supabase-service-role';
 
 export const POST = async ({ request, url }: RequestEvent) => {
   const isStripe = url.searchParams.has('stripe');
@@ -48,9 +44,10 @@ export const POST = async ({ request, url }: RequestEvent) => {
         );
       }
 
-      // Fetch actual product data from database for security
+      // Same DB access as pay-on-pickup: service role so RLS/anon catalog policies cannot break Stripe
+      const db = createServiceRoleClient();
       const productIds = checkoutRequest.items.map(item => item.product_id);
-      const { data: products, error: productsError } = await supabase
+      const { data: products, error: productsError } = await db
         .from('products')
         .select('id, name, price_cents, is_active')
         .in('id', productIds)
@@ -87,6 +84,9 @@ export const POST = async ({ request, url }: RequestEvent) => {
             currency: 'usd',
             product_data: {
               name: product.name,
+              metadata: {
+                product_id: item.product_id
+              }
             },
             unit_amount: product.price_cents,
           },

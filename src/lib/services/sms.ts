@@ -15,6 +15,10 @@ export class SmsService {
     orderId: string,
     itemsWithNames: ItemWithName[]
   ): Promise<void> {
+    if (env.SMS_ORDER_NOTIFICATIONS_ENABLED !== 'true') {
+      return;
+    }
+
     try {
       const accountSid = env.TWILIO_ACCOUNT_SID?.trim();
       const authToken = env.TWILIO_AUTH_TOKEN?.trim();

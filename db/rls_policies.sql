@@ -103,6 +103,21 @@ CREATE POLICY "order_items_admin_all"
   ON public.order_items FOR ALL TO authenticated
   USING (public.is_admin()) WITH CHECK (public.is_admin());
 
+-- Server checkout / Stripe webhooks use the Supabase service role. These policies
+-- mirror profiles_service_role_all so inserts/reads still work if bypass behavior
+-- ever differs from expectations.
+CREATE POLICY "customers_service_role_all"
+  ON public.customers FOR ALL TO service_role
+  USING (true) WITH CHECK (true);
+
+CREATE POLICY "orders_service_role_all"
+  ON public.orders FOR ALL TO service_role
+  USING (true) WITH CHECK (true);
+
+CREATE POLICY "order_items_service_role_all"
+  ON public.order_items FOR ALL TO service_role
+  USING (true) WITH CHECK (true);
+
 -- ---------------------------------------------------------------------------
 -- products — public catalog reads active only; admins see and edit everything
 -- ---------------------------------------------------------------------------
