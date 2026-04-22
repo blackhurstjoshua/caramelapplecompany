@@ -7,7 +7,7 @@ import { orderConfirmationEmail } from '$lib/email-templates/order-confirmation'
 import { adminOrderNotificationEmail } from '$lib/email-templates/admin-order-notification';
 import { OrderService } from './orders';
 import { generateInvoicePdf } from './invoice-pdf';
-import { supabaseAnonClient } from '$lib/supabase';
+import { createServiceRoleClient } from '$lib/supabase-service-role';
 
 const ADMIN_EMAIL = 'kristaleecook5@gmail.com';
 
@@ -32,7 +32,7 @@ export class EmailService {
 
   static async generateInvoiceAttachment(
     orderId: string,
-    client: SupabaseClient = supabaseAnonClient
+    client: SupabaseClient = createServiceRoleClient()
   ): Promise<nodemailer.SendMailOptions['attachments']> {
     try {
       const orderDetails = await OrderService.getOrderDetails(orderId, client);

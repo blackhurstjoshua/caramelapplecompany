@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { createServiceRoleClient } from '$lib/supabase-service-role';
 import { CustomerService } from '$lib/services/customers';
 
 /**
@@ -50,7 +51,7 @@ function formatDate(dateString: string): string {
 export const GET: RequestHandler = async ({ locals }) => {
   try {
     // Fetch all customers
-    const customers = await CustomerService.getAllCustomers();
+    const customers = await CustomerService.getAllCustomers(createServiceRoleClient());
     
     // Process customers for CSV export
     const processedCustomers = customers.map(customer => ({

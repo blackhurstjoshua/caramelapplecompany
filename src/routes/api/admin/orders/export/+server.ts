@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { createServiceRoleClient } from '$lib/supabase-service-role';
 import { OrderService } from '$lib/services/orders';
 
 /**
@@ -65,7 +66,7 @@ function formatCurrency(cents: number): string {
 export const GET: RequestHandler = async ({ locals }) => {
   try {
     // Fetch all orders with customer info
-    const orders = await OrderService.getAllOrdersWithCustomer();
+    const orders = await OrderService.getAllOrdersWithCustomer(createServiceRoleClient());
     
     // Process orders for CSV export
     const processedOrders = orders.map(order => ({

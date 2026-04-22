@@ -25,6 +25,6 @@ export const load: PageLoad = async ({ params }) => {
   }
 };
 
-export const ssr = true;
+export const ssr = false;
 export const prerender = false;
 

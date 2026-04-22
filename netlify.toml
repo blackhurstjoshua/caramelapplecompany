@@ -1,3 +1,8 @@
 [build.environment]
   # Disable secrets scanning for PUBLIC_ environment variables that are meant to be exposed
   SECRETS_SCAN_OMIT_KEYS = "PUBLIC_SUPABASE_URL,PUBLIC_SUPABASE_ANON_KEY"
+
+# SvelteKit on Netlify runs API routes and +page.server.ts in Functions. They need the same
+# private vars at runtime (Site settings → Environment variables), not only in local .env.
+# If something works locally but not in production, confirm SUPABASE_SERVICE_ROLE_KEY,
+# STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, and SMTP_* are set for the deploy context (e.g. Production).

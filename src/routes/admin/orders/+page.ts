@@ -17,7 +17,7 @@ export const load: PageLoad = async () => {
   }
 };
 
-// Disable prerendering for admin pages
-export const ssr = true;
+// Load runs in the browser so Supabase has the admin session; SSR uses anon and RLS returns no rows
+export const ssr = false;
 export const prerender = false;
 

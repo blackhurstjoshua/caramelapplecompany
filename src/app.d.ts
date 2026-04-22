@@ -23,10 +23,13 @@ declare module '$env/static/public' {
 	export const PUBLIC_SUPABASE_ANON_KEY: string
 }
 
-declare module '$env/static/private' {
-	export const SUPABASE_SERVICE_ROLE_KEY: string
-	export const STRIPE_SECRET_KEY: string
-	export const STRIPE_WEBHOOK_SECRET: string
+// Secrets used at runtime in serverless (Netlify Functions); do not use $env/static/private for these.
+declare module '$env/dynamic/private' {
+	export const env: {
+		SUPABASE_SERVICE_ROLE_KEY?: string
+		STRIPE_SECRET_KEY?: string
+		STRIPE_WEBHOOK_SECRET?: string
+	}
 }
 
 export {};
