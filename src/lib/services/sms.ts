@@ -7,7 +7,8 @@ type ItemWithName = CheckoutRequest['items'][number] & { product_name: string };
 
 export class SmsService {
   /**
-   * Sends transactional order SMS to owner (if configured) and optionally to customer (US E.164 + opt-in via validated phone).
+   * Sends transactional order SMS via Twilio (Messaging Service = From identity).
+   * Owner `to`: `OWNER_SMS_PHONE` (E.164) when set; customer `to`: validated US mobile from checkout when set.
    * Failures are logged; callers should not fail the order on SMS errors.
    */
   static async sendOrderNotifications(
@@ -15,10 +16,6 @@ export class SmsService {
     orderId: string,
     itemsWithNames: ItemWithName[]
   ): Promise<void> {
-    if (env.SMS_ORDER_NOTIFICATIONS_ENABLED !== 'true') {
-      return;
-    }
-
     try {
       const accountSid = env.TWILIO_ACCOUNT_SID?.trim();
       const authToken = env.TWILIO_AUTH_TOKEN?.trim();
@@ -33,7 +30,7 @@ export class SmsService {
       const client = twilio(accountSid, authToken);
       const customerTo = request.customer.phone?.trim() || undefined;
 
-      const customerBody = orderConfirmationSmsBody(request.customer, request.order, orderId);
+      const customerBody = orderConfirmationSmsBody(request.order);
       const ownerBody = adminOrderSmsBody(request.customer, request.order, itemsWithNames, orderId);
 
       if (ownerPhone) {

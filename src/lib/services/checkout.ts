@@ -3,6 +3,7 @@ import { createServiceRoleClient } from '$lib/supabase-service-role';
 import { CustomerService } from './customers';
 import { OrderService, type CreateOrderItemData } from './orders';
 import { EmailService } from './email';
+import { SmsService } from './sms';
 
 function checkoutDb() {
   return createServiceRoleClient();
@@ -167,7 +168,7 @@ export class CheckoutService {
         EmailService.sendOrderNotificationToAdmin(requestForNotifications, orderId, invoiceAttachment)
       ]);
 
-      // SMS: set SMS_ORDER_NOTIFICATIONS_ENABLED=true and wire SmsService when Twilio / 10DLC is approved.
+      await SmsService.sendOrderNotifications(requestForNotifications, orderId, itemsWithPrices);
 
       return {
         success: true,

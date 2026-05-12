@@ -4,20 +4,14 @@ import { formatAddress, formatDate } from '$lib/email-templates/helpers';
 const SUPPORT_PHONE = '(801) 787-7288';
 
 export function orderConfirmationSmsBody(
-  customer: CheckoutCustomer,
   order: CheckoutOrder,
-  orderId: string
 ): string {
-  const shortId = orderId.slice(0, 8).toUpperCase();
-  const when = formatDate(order.delivery_date);
-  const retrieval =
-    order.retrieval_method === 'delivery'
-      ? 'Delivery — see your email for address details.'
-      : 'Pickup at 6229 West 10830 North, Highland, UT 84003';
+  const paymentMethodMsg = order.payment_method === 'stripe' ? 'paid online (Stripe)' : `will be paid on pickup`;
 
   return (
-    `Thanks ${customer.name}! Order #${shortId} is confirmed for ${when}. ${retrieval} ` +
-    `Questions? ${SUPPORT_PHONE} — Caramel Apple Co.`
+    `Thank you so much! Your caramel apple order has been received and ${paymentMethodMsg}!` + 
+    ` If you have questions related to your order please contact ${SUPPORT_PHONE}.` +
+    ` Our team will reach out shortly to confirm order details and answer questions.`
   );
 }
 
