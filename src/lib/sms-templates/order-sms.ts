@@ -1,7 +1,16 @@
 import type { CheckoutCustomer, CheckoutOrder, CheckoutItem } from '$lib/services/checkout';
 import { formatAddress, formatDate } from '$lib/email-templates/helpers';
+import { invoiceNumber } from '$lib/invoice-access';
+import { formatCents } from '$lib/utils/currency';
 
 const SUPPORT_PHONE = '(801) 787-7288';
+
+export interface OrderSmsTotals {
+  subtotalCents: number;
+  taxCents: number;
+  deliveryFeeCents: number;
+  totalCents: number;
+}
 
 export function orderConfirmationSmsBody(
   order: CheckoutOrder,
@@ -18,11 +27,15 @@ export function orderConfirmationSmsBody(
 export function adminOrderSmsBody(
   customer: CheckoutCustomer,
   order: CheckoutOrder,
-  items: Array<CheckoutItem & { product_name: string }>,
-  orderId: string
+  items: Array<CheckoutItem & { product_name: string; price_cents: number }>,
+  orderId: string,
+  totals: OrderSmsTotals,
+  invoiceUrl?: string
 ): string {
-  const shortId = orderId.slice(0, 8).toUpperCase();
-  const lines = items.map((i) => `• ${i.product_name} ×${i.quantity}`).join('\n');
+  const inv = invoiceNumber(orderId);
+  const lines = items
+    .map((i) => `• ${i.product_name} ×${i.quantity} — ${formatCents(i.price_cents * i.quantity)}`)
+    .join('\n');
   const retrieval =
     order.retrieval_method === 'delivery'
       ? `Delivery\n${order.address ? formatAddress(order.address) : 'N/A'}`
@@ -31,7 +44,7 @@ export function adminOrderSmsBody(
     order.payment_method === 'stripe' ? 'Paid online (Stripe)' : `Pay on ${order.retrieval_method}`;
 
   let body =
-    `New order #${shortId}\n` +
+    `New order ${inv}\n` +
     `${customer.name}\n` +
     `${customer.email}` +
     (customer.phone ? `\n${customer.phone}` : '') +
@@ -39,10 +52,21 @@ export function adminOrderSmsBody(
     `${pay}\n\n` +
     `Items:\n${lines}`;
 
+  const totalParts = [`Subtotal ${formatCents(totals.subtotalCents)}`];
+  if (totals.deliveryFeeCents > 0) {
+    totalParts.push(`Delivery ${formatCents(totals.deliveryFeeCents)}`);
+  }
+  totalParts.push(`Tax ${formatCents(totals.taxCents)}`);
+  totalParts.push(`Total ${formatCents(totals.totalCents)}`);
+  body += `\n\n${totalParts.join(' · ')}`;
+
   if (order.customizations?.trim()) {
     body += `\n\nNotes: ${order.customizations.trim()}`;
   }
 
-  body += `\n\nFull ID: ${orderId}`;
+  if (invoiceUrl) {
+    body += `\n\nInvoice: ${invoiceUrl}`;
+  }
+
   return body;
 }

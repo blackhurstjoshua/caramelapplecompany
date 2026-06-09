@@ -2,6 +2,7 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import type { PageData } from './$types';
+  import { createInvoiceAccessToken } from '$lib/invoice-access';
   import { formatPrice } from '$lib/utils/currency';
   import { OrderService, type ItemOp, type OrderUpdatesPayload, type ProductSnapshot } from '$lib/services/orders';
   import { searchProductsByName } from '$lib/services/products';
@@ -42,15 +43,9 @@
   
   function generateInvoice() {
     if (!orderId) return;
-    
-    // Generate a simple token for invoice access
-    const timestamp = Date.now();
-    const tokenData = `${orderId}:${timestamp}`;
-    const token = btoa(tokenData);
-    
-    // Open invoice in new window - user can print/save as PDF from browser
-    const invoiceUrl = `/invoice/${orderId}?token=${token}`;
-    window.open(invoiceUrl, '_blank');
+
+    const token = createInvoiceAccessToken(orderId);
+    window.open(`/invoice/${orderId}?token=${token}`, '_blank');
   }
   
   function formatDate(dateString: string): string {

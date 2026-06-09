@@ -168,7 +168,7 @@ export class CheckoutService {
         EmailService.sendOrderNotificationToAdmin(requestForNotifications, orderId, invoiceAttachment)
       ]);
 
-      await SmsService.sendOrderNotifications(requestForNotifications, orderId, itemsWithPrices);
+      await SmsService.sendOrderNotifications(requestForNotifications, orderId, itemsWithPrices, totals);
 
       return {
         success: true,
