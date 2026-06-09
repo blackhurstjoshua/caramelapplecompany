@@ -15,18 +15,24 @@ function resolveSiteUrl(): string | undefined {
 }
 
 function parseOwnerPhones(): string[] {
-  const phones = (env as Record<string, string | undefined>).OWNER_SMS_PHONES?.trim();
-  if (phones) {
-    return phones.split(',').map((p) => p.trim()).filter(Boolean);
+  const envVars = env as Record<string, string | undefined>;
+  const ownerPhones = envVars.OWNER_SMS_PHONES?.trim();
+  const devPhone = envVars.DEVELOPER_SMS_PHONE?.trim();
+  const phones: string[] = [];
+  if (ownerPhones) {
+    phones.push(...ownerPhones.split(',').map((p) => p.trim()).filter(Boolean));
   }
-  const single = (env as Record<string, string | undefined>).OWNER_SMS_PHONE?.trim();
-  return single ? [single] : [];
+  if (devPhone) {
+    phones.push(devPhone);
+  }
+  console.log('phones:', phones);
+  return phones;
 }
 
 export class SmsService {
   /**
    * Sends transactional order SMS via Twilio (Messaging Service = From identity).
-   * Owner `to`: `OWNER_SMS_PHONES` or `OWNER_SMS_PHONE` (E.164); customer `to`: validated US mobile when set.
+   * Owner `to`: `OWNER_SMS_PHONES` plus optional `DEVELOPER_SMS_PHONE` (E.164); customer `to`: validated US mobile when set.
    * Failures are logged; callers should not fail the order on SMS errors.
    */
   static async sendOrderNotifications(

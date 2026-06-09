@@ -27,7 +27,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 
     // Token is valid for 1 hour
     const tokenAge = Date.now() - parseInt(timestamp);
-    if (tokenAge > 3600000) { // 1 hour in milliseconds
+    if (tokenAge > (24 * 3600000)) { // 24 hour in milliseconds
       throw error(403, 'Access token has expired');
     }
   } catch (err) {
