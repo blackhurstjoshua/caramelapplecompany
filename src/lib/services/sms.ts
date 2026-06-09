@@ -1,23 +1,26 @@
 import twilio from 'twilio';
-import { env } from '$env/dynamic/private';
 import { buildInvoiceUrl } from '$lib/invoice-access';
 import type { CheckoutRequest } from './checkout';
 import { adminOrderSmsBody, orderConfirmationSmsBody, type OrderSmsTotals } from '$lib/sms-templates/order-sms';
 
 type ItemWithName = CheckoutRequest['items'][number] & { product_name: string; price_cents: number };
 
+/** Read runtime env (Netlify Functions inject into process.env, not $env/dynamic/private). */
+function envVar(name: string): string | undefined {
+  const value = process.env[name]?.trim();
+  return value || undefined;
+}
+
 function resolveSiteUrl(): string | undefined {
-  const siteUrl = (env as Record<string, string | undefined>).SITE_URL?.trim();
+  const siteUrl = envVar('SITE_URL');
   if (siteUrl) return siteUrl;
 
-  const url = process.env.URL?.trim() || process.env.DEPLOY_PRIME_URL?.trim();
-  return url || undefined;
+  return envVar('URL') ?? envVar('DEPLOY_PRIME_URL');
 }
 
 function parseOwnerPhones(): string[] {
-  const envVars = env as Record<string, string | undefined>;
-  const ownerPhones = envVars.OWNER_SMS_PHONES?.trim();
-  const devPhone = envVars.DEVELOPER_SMS_PHONE?.trim();
+  const ownerPhones = envVar('OWNER_SMS_PHONES');
+  const devPhone = envVar('DEVELOPER_SMS_PHONE');
   const phones: string[] = [];
   if (ownerPhones) {
     phones.push(...ownerPhones.split(',').map((p) => p.trim()).filter(Boolean));
@@ -25,7 +28,6 @@ function parseOwnerPhones(): string[] {
   if (devPhone) {
     phones.push(devPhone);
   }
-  console.log('phones:', phones);
   return phones;
 }
 
@@ -42,9 +44,9 @@ export class SmsService {
     totals: OrderSmsTotals
   ): Promise<void> {
     try {
-      const accountSid = env.TWILIO_ACCOUNT_SID?.trim();
-      const authToken = env.TWILIO_AUTH_TOKEN?.trim();
-      const messagingServiceSid = env.TWILIO_MSG_SERVICE_SID?.trim();
+      const accountSid = envVar('TWILIO_ACCOUNT_SID');
+      const authToken = envVar('TWILIO_AUTH_TOKEN');
+      const messagingServiceSid = envVar('TWILIO_MSG_SERVICE_SID');
       const ownerPhones = parseOwnerPhones();
 
       if (!accountSid || !authToken || !messagingServiceSid) {
