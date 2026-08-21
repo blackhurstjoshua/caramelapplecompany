@@ -242,8 +242,7 @@
         phone: contactMethod === 'phone' ? phone.trim() : null
       };
       
-      const customer = await CustomerService.createCustomer(customerData);
-      const customerId = typeof customer === 'string' ? customer : customer.id;
+      const customerId = await CustomerService.upsertCustomer(customerData);
       
       // 2. Create order
       const orderData: CreateOrderData = {

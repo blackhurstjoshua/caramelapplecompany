@@ -169,8 +169,20 @@ export class CustomerService {
         })
         .select('id')
         .single();
-      
-      if (insertErr) throw insertErr;
+
+      if (insertErr) {
+        // Race: another request inserted this email between lookup and insert
+        if (insertErr.code === '23505' && customerData.email) {
+          const { data: existing, error: retryErr } = await client
+            .from('customers')
+            .select('id')
+            .eq('email', customerData.email)
+            .maybeSingle();
+          if (retryErr) throw retryErr;
+          if (existing) return existing.id;
+        }
+        throw insertErr;
+      }
       if (!inserted) throw new Error('Failed to create customer');
       customerId = inserted.id;
     }
