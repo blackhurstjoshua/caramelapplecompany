@@ -146,14 +146,17 @@ export class CustomerService {
       if (existingByEmail) customerId = existingByEmail.id;
     }
 
-    // Try to find existing customer by phone if not found by email
-    if (!customerId && customerData.phone) {
+    // Phone is not unique (stores, shared numbers). Match phone + name and take one.
+    if (!customerId && customerData.phone && customerData.name) {
       const { data: existingByPhone, error: phoneErr } = await client
         .from('customers')
         .select('id')
         .eq('phone', customerData.phone)
+        .eq('name', customerData.name)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
-      
+
       if (phoneErr) throw phoneErr;
       if (existingByPhone) customerId = existingByPhone.id;
     }
